@@ -543,7 +543,7 @@
             let initialMovement = false;  // Indicates if the movable element's position has changed from the staring position
             let sampleCounter = 0;        // Counter for the number of samples taken
             let locationCounter = 0;      // Counter for the number of locations sampled
-            const zones = {};             // Stores sample data for each zone
+            const zoneSamples = {};       // Stores sample data for each zone
             const zonePopulations = {};   // Stores population data for each zone
             let zoneCount = 0;            // Total number of zones
 
@@ -796,7 +796,7 @@
                     zonePopulations[`zone${index + 1}`] = tempArray;
 
                     // Generates samples by randomly selecting from the population and then stores the samples for said zone
-                    zones[`zone${index + 1}`] = Array.from({ length: sampleNum }, () =>
+                    zoneSamples[`zone${index + 1}`] = Array.from({ length: sampleNum }, () =>
                         Array.from({ length: samplePop }, () => tempArray[Math.floor(Math.random() * tempArray.length)])
                     );
                 });
@@ -816,20 +816,19 @@
              *     zoneIndex - The index of the selected zone
              */
              function selectZoneByDistance() {
-                // Four corners of the canvas
+                // Arrary containing the XY coordinates for each corner of the canvas
                 const canvasCorners = [
-                    { x: leftOffset, y: topOffset },
-                    { x: leftOffset + canvasDisplayWidth, y: topOffset },
-                    { x: leftOffset, y: topOffset + canvasDisplayHeight },
-                    { x: leftOffset + canvasDisplayWidth, y: topOffset + canvasDisplayHeight },
+                    { x: leftOffset, y: topOffset }, // Top left
+                    { x: leftOffset + canvasDisplayWidth, y: topOffset }, // Top right
+                    { x: leftOffset, y: topOffset + canvasDisplayHeight }, // Bottom Left
+                    { x: leftOffset + canvasDisplayWidth, y: topOffset + canvasDisplayHeight }, // Bottom Right
                 ];
             
-                // Calculate distances from the movable element to each hidden element
+                // Calculates the distance from the movable element to the hidden element(s)
                 const distances = hiddenElements.map(element => calculateDistance(movableElement, element));
                 const closestDistance = Math.min(...distances);
             
-                // Calculate maximum possible distance:
-                // Find the furthest corner from any hidden element
+                // Calculates maximum possible distance by finding the furthest corner from any hidden element
                 const maxDistance = hiddenElements.reduce((maxDist, element) => {
                     const furthestCornerDistance = Math.max(
                         ...canvasCorners.map(corner => calculateDistance(element, corner))
@@ -837,13 +836,13 @@
                     return Math.max(maxDist, furthestCornerDistance);
                 }, 0);
             
-                // Proximity Factor formula
+                // Calculates the proximity factor
                 const proximityFactor = (closestDistance / maxDistance) * 1000;
             
-                // Adjust with square root to increase sensitivity
+                // Adjusts with square root to increase sensitivity
                 const adjustedProximity = Math.sqrt(proximityFactor);
             
-                // Determine the zone index
+                // Determines the zone index
                 const zoneIndex = Math.round(adjustedProximity * (zoneCount - 1));
             
                 // Ensure the index is within bounds
@@ -851,7 +850,7 @@
             
                 // Return the appropriate zone and index
                 return {
-                    samples: zones[`zone${clampedZoneIndex + 1}`] || [],
+                    samples: zoneSamples[`zone${clampedZoneIndex + 1}`] || [],
                     zoneIndex: clampedZoneIndex,
                 };
             }
