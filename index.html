@@ -255,7 +255,7 @@
             }
             #move-popup{ z-index: 125;}
             #scroll-popup{ z-index : 150;}
-             /* ####### Media Queries for portait on mobile or tablet ##### */
+             /* ####### Media Queries for portrait layouts on mobile/tablets ##### */
              @media only screen and (orientation: portrait) and (hover: none) and (min-height: 501px){
                 body{
                     display: grid;
@@ -263,7 +263,7 @@
                     grid-template-rows: 10% repeat(4, minmax(0, 1fr));
                 }
                 header{
-                    width: 100vw;
+                    width: 100%;
                     grid-column: 1/6;
                     grid-row: 1/2;
                 }
@@ -289,7 +289,7 @@
                 }
             }
 
-            /* Shows the rotate prompt for all phone screens that are too small to properly display the content in portrait mode*/
+            /* Displays the rotate prompt for all phone screens that are too small to properly display the content in portrait mode*/
             @media only screen and (orientation: portrait) and (hover: none) and (max-width: 500px){
                 #rotate-prompt {
                     display: initial;
@@ -406,10 +406,10 @@
         <p>Please rotate your device for the best experience.</p>
     </div>
 
-    <!-- Popup Modal -->
+    <!-- Initial popup -->
     <div id="info-popup" class="initialPopup">
         <div class="popup-content">
-            <h2>Welcome to the Statistical Software Application</h2>
+            <h2>Welcome to Stats Teacher!</h2>
             <p>
                 This application helps teach statistical concepts by simulating the role of a web designer.<br><br>
                 The goal is to move Equation solver around the screen and try to find the place that nets the highest
@@ -424,39 +424,38 @@
     </div>
     <!-- Header -->
     <header>
-        <h1>Statistical Software Application - Version 6</h1>
+        <h1>Statistical Software Application</h1>
     </header>
 
-    <!-- Main Content -->
-        <!-- Scroll Hint Popup -->
-        <div id="scroll-popup" class="suggestion-popup">
-            <p>Scroll down to see the results!</p>
-        </div>
-        <div id="move-popup" class="suggestion-popup">
-            <p>Try moving the Equation Solver icon first!</p>
-        </div>
+    <!--Suggestion popup(s) -->
+    <div id="scroll-popup" class="suggestion-popup">
+        <p>Scroll down to see the results!</p>
+    </div>
+    <div id="move-popup" class="suggestion-popup">
+        <p>Try moving the Equation Solver icon first!</p>
+    </div>
 
-        <!-- Canvas Interface -->
-        <section id="canvas-interface">
-            <canvas id="canvas" aria-label="Interactive statistical visualization"></canvas>
-        </section>
+    <!-- Canvas Interface -->
+    <section id="canvas-interface">
+        <canvas id="canvas" aria-label="Interactive statistical visualization"></canvas>
+    </section>
 
-        <!-- Input Interface -->
-        <div id="input-interface-wrapper">
-            <nav id="input-interface">
-                <button id="sample-button" title="Show sample data for the selected location">Show Sample</button>
-                <button id="post-button" title="Post changes and display the population data">Post Changes</button>
-                <button id="copy-button" title="Copy all data to clipboard">Copy Data</button>
-            </nav>
-        </div>
+    <!-- Input Interface -->
+    <div id="input-interface-wrapper">
+        <nav id="input-interface">
+            <button id="sample-button" title="Show sample data for the selected location">Show Sample</button>
+            <button id="post-button" title="Post changes and display the population data">Post Changes</button>
+            <button id="copy-button" title="Copy all data to clipboard">Copy Data</button>
+        </nav>
+    </div>
 
-        <!-- Output Interface -->
-        <section id="output-interface">
-            <div class="tab-container">
-                <div class="tabs" id="tabs"></div>
-                <div id="tab-contents"></div>
-            </div>    
-        </section>
+    <!-- Output Interface -->
+    <section id="output-interface">
+        <div class="tab-container">
+            <div class="tabs" id="tabs"></div>
+            <div id="tab-contents"></div>
+        </div>    
+    </section>
     
     <!-- Embedded JavaScript code -->
     <script>
@@ -1188,9 +1187,9 @@
                 }
 
                 // Places the labels for hidden elements [H]
-                hiddenElements.forEach(el => {
-                    const { xPos, yPos } = getPosition(el);
-                    placeLabel(canvasArray, xPos, yPos, '[H]');
+                hiddenElements.forEach(hiddenElement => {
+                    const hiddenPos = getPosition(hiddenElement);
+                    placeLabel(canvasArray, hiddenPos.xPos, hiddenPos.yPos, '[H]');
                 });
 
                 // Places the label for the movable element [M]
