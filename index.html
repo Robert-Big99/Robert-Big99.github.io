@@ -5,7 +5,7 @@
     <!-- Page metadata -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Statistical Software Application</title>
+    <title>Stats Teacher</title>
 
     <!-- Embedded CSS styles for layout and appearance -->
     <style>
@@ -29,6 +29,21 @@
                 background-color: #444;
                 border-radius: 1% 1% 1% 1%;
             }
+
+            button {
+                background-color: #555;
+                color: #fff;
+                border: none;
+                cursor: pointer;
+            }
+            button:hover {
+                background-color: #666
+            }
+            button:disabled {
+                background-color: #777;
+                cursor: not-allowed;
+            }
+
             header h1 {
                 margin: 0;
                 font-size: 2em;
@@ -58,26 +73,17 @@
                 width: 100px;
                 border-radius: 5%;
                 font-size: 1em;
-                margin: 10px;
                 padding: 10px 20px;
-                background-color: #555;
-                color: #fff;
-                border: none;
-                cursor: pointer;
             }
-            #input-interface button:hover {
-                background-color: #666
-            }
-            #input-interface button:disabled {
-                background-color: #777;
-                cursor: not-allowed;
-            }
-
             /* Tabs and Content */
+            .tab-content > button {
+                margin: auto;
+                padding: 10px;
+            }
             .tab-container {
                 overflow-y: auto;
                 max-height: 30vh;
-                margin: 20px 0;
+                margin: 0 0 20px 0;
                 background-color: #444;
                 border: 1px solid #666;
             }
@@ -97,11 +103,15 @@
                 background-color: #666;
             }
             .tab-content {
+                overflow-x: auto;
                 display: none;
                 padding: 20px;
             }
             .tab-content.active {
                 display: block;
+            }
+            tbody :nth-child(1){
+                text-align: start;
             }
 
             /* Summaries */           
@@ -424,7 +434,7 @@
     </div>
     <!-- Header -->
     <header>
-        <h1>Statistical Software Application</h1>
+        <h1>Stats Teacher</h1>
     </header>
 
     <!--Suggestion popup(s) -->
@@ -436,22 +446,22 @@
     </div>
 
     <!-- Canvas Interface -->
-    <section id="canvas-interface">
+    <section id="canvas-interface" class="canvas-interface">
         <canvas id="canvas" aria-label="Interactive statistical visualization"></canvas>
     </section>
 
     <!-- Input Interface -->
     <div id="input-interface-wrapper">
-        <nav id="input-interface">
-            <button id="sample-button" title="Show sample data for the selected location">Show Sample</button>
-            <button id="post-button" title="Post changes and display the population data">Post Changes</button>
+        <nav id="input-interface" class="input-interface">
+            <button id="sample-button" title="Show sample data for the selected location">Pilot Test</button>
+            <button id="post-button" title="Post changes and display the population data">Publish Change</button>
             <button id="copy-button" title="Copy all data to clipboard">Copy Data</button>
         </nav>
     </div>
 
     <!-- Output Interface -->
-    <section id="output-interface">
-        <div class="tab-container">
+    <section id="output-interface" class= "output-interface">
+        <div id = "tab-container" class="tab-container">
             <div class="tabs" id="tabs"></div>
             <div id="tab-contents"></div>
         </div>    
@@ -542,6 +552,8 @@
             let initialMovement = false;  // Indicates if the movable element's position has changed from the staring position
             let sampleCounter = 0;        // Counter for the number of samples taken
             let locationCounter = 0;      // Counter for the number of locations sampled
+            let totalClicks_ = 0;
+            let sampleClicks_ = 0;
             const zoneSamples = {};       // Stores sample data for each zone
             const zonePopulations = {};   // Stores population data for each zone
             let zoneCount = 0;            // Total number of zones
@@ -786,7 +798,7 @@
                 ];
 
                 const sampleNum = 30;   // Number of samples per zone
-                const samplePop = 150;  // Sample population size
+                const samplePop = 150;  // Sample population size (Changing to lower bound as per clients request)
                 zoneCount = zoneData.length; // The total number of zones
 
                 zoneData.forEach((zone, index) => {
@@ -796,7 +808,7 @@
 
                     // Generates samples by randomly selecting from the population and then stores the samples for said zone
                     zoneSamples[`zone${index + 1}`] = Array.from({ length: sampleNum }, () =>
-                        Array.from({ length: samplePop }, () => tempArray[Math.floor(Math.random() * tempArray.length)])
+                        Array.from({ length: samplePop + (Math.random() * 100 ) }, () => tempArray[Math.floor(Math.random() * tempArray.length)])
                     );
                 });
             }
@@ -900,17 +912,20 @@
                 const randomSample = pullSample(selectedZoneSamples);
                 if (!randomSample) return;
 
-                const sampleClicks = randomSample.reduce((acc, val) => acc + val, 0);
                 const samplePopulation = randomSample.length;
+                const sampleClicks = randomSample.reduce((acc, val) => acc + val, 0);
                 const sampleProportion = (sampleClicks / samplePopulation).toFixed(2);
                 const sampleCTR = ((sampleClicks / samplePopulation) * 100).toFixed(2);
 
                 const contentId = `content-${locationCounter}`;
-                createSampleSummary(contentId, sampleCounter, samplePopulation, sampleProportion, sampleCTR);
+                createSampleSummary(contentId, sampleCounter, samplePopulation, sampleClicks, sampleCTR);
                 createSampleTable(contentId, sampleCounter, randomSample);
 
                 // Generate the canvas representation and store it per location
                 canvasRepresentations[contentId] = generateTextCanvasRepresentation();
+
+                //Used when locking the canvas via the Pilot Test button
+                sampleClicks_ = sampleClicks;
             }
 
             /*
@@ -1026,15 +1041,12 @@
              * OUTPUT:
              * Adds a summary element to the content
              */
-            function createSampleSummary(contentId, sampleCounter, population, proportion, ctr) {
+            function createSampleSummary(contentId, sampleCounter, population, sampleClicks, ctr) {
                 const summary = document.createElement('div');
                 summary.className = 'summary sample-summary';
 
-                // Stores data attributes for later calculations
-                Object.assign(summary.dataset, { samplePopulation: population, sampleProportion: proportion });
-
                 // Creates the sample summary element
-                summary.innerHTML = `<p>Sample: ${sampleCounter} | Sample Population: ${population} | P̂: ${proportion} | CTR: ${ctr}%</p>`;
+                summary.innerHTML = `<p>Sample: ${sampleCounter} | Sample Population: ${population} | Number of clicks: ${sampleClicks} | Click-Through Rate: ${ctr}%</p>`;
                 document.getElementById(contentId).appendChild(summary);
             }
 
@@ -1077,6 +1089,7 @@
              */
             function createPopulationSummary(contentId, zoneIndex) {
                 const data = zonePopulations[`zone${zoneIndex + 1}`];
+                data.splice(- (Math.random() * 100 ));
                 const populationSize = data.length;
                 const totalClicks = data.reduce((acc, val) => acc + val, 0);
                 const proportion = (totalClicks / populationSize).toFixed(2);
@@ -1084,8 +1097,11 @@
 
                 const summary = document.createElement('div');
                 summary.className = 'summary population';
-                summary.innerHTML = `<p>Zone ${zoneIndex + 1} | Population: ${populationSize} | Population Proportion: ${proportion} | CTR: ${ctr}%</p>`;
+                summary.innerHTML = `<p>Zone ${zoneIndex + 1} | Number of Users: ${populationSize} | Number of clicks: ${totalClicks} | Click-Through Rate: ${ctr}%</p>`;
                 document.getElementById(contentId).appendChild(summary);
+
+                //Used when locking the canvas via the Publish Change button
+                totalClicks_ = totalClicks
             }
 
             /*
@@ -1244,22 +1260,106 @@
                 });
             }
 
+
+
             /*
              * DESCRIPTION:
-             * Locks the canvas to prevent further movement of the movable element.
-             * Disables dragging and interaction with the canvas.
+             * Simulates a glowing effect on the movable element directly on the canvas by redrawing with a glowing outline.
              *
              * INPUT:
-             * None
+             * duration - The total duration for the glow effect (in milliseconds).
+             * clicks - The total number of clicks or glow flashes to simulate.
              *
              * OUTPUT:
-             * Sets canvasLocked to true
+             * Visually simulates multiple clicks with a glowing effect on the movable element.
              */
-            function lockCanvas() {
-                canvasLocked = true;
-                isDragging = false;
+            function triggerGlowEffect(duration, clicks) {
+                duration; // Total time the canvas is locked
+                const intervals = []; // Store randomly spaced intervals
+
+                // Randomly distribute the glow events over the total duration
+                for (let i = 0; i < clicks; i++) {
+                    const randomInterval = Math.random() * duration; // Random point within the lock period
+                    intervals.push(randomInterval);
+                }
+
+                // Sort intervals to ensure they occur sequentially
+                intervals.sort((a, b) => a - b);
+
+                intervals.forEach((interval, index) => {
+                    setTimeout(() => {
+                        // Draw the movable element with a glowing outline
+                        drawMovableElementWithGlow();
+
+                        // Remove the glow effect after 3ms by redrawing the canvas without the glow
+                        setTimeout(() => {
+                            drawElements(); // Redraw the canvas to clear the glow
+                        }, 3);
+                    }, interval);
+                });
             }
 
+            /*
+            * DESCRIPTION:
+            * Draws the movable element with a glowing outline.
+            * This effect is simulated directly on the canvas.
+            */
+            function drawMovableElementWithGlow() {
+                ctx.save();
+                ctx.scale(canvas.width / MODEL_WIDTH, canvas.height / MODEL_HEIGHT);
+            
+                // Get the movable element's properties
+                const { x, y, width, height } = movableElement;
+            
+                // Calculate the element's position and size
+                const elementX = x * MODEL_WIDTH - (width * MODEL_WIDTH) / 2;
+                const elementY = y * MODEL_HEIGHT - (height * MODEL_HEIGHT) / 2;
+                const elementWidth = width * MODEL_WIDTH;
+                const elementHeight = height * MODEL_HEIGHT;
+            
+                // Draw the glowing outline
+                ctx.shadowBlur = 5; // Add shadow for the glow
+                ctx.shadowColor = "blue"; // Blue glow color
+                ctx.strokeStyle = "blue"; // Outline color
+                ctx.lineWidth = 1; // Outline thickness
+                ctx.strokeRect(elementX, elementY, elementWidth, elementHeight); // Draw only the outline
+            
+                ctx.restore();
+            }
+
+            /*
+            * DESCRIPTION:
+            * Locks the canvas to prevent further movement of the movable element.
+            * Disables dragging and interaction with the canvas. Unlocks automatically if a time parameter is provided.
+            *
+            * INPUT:
+            * time - The amount of time (in milliseconds) to lock the canvas. If not provided, the canvas remains locked indefinitely.
+            *
+            * OUTPUT:
+            * Sets canvasLocked to true and optionally unlocks it after the specified time.
+            */
+            function lockCanvas(time) {
+                canvasLocked = true;
+                isDragging = false;
+
+                // Disables the 'Post Changes' and 'Show Sample' buttons
+                document.getElementById('post-button').disabled = true;
+                // Disables the 'Show Sample' button
+                document.getElementById('sample-button').disabled = true;
+
+                // If a time parameter is provided, set a timeout to unlock the canvas
+                if ( time > 0) {
+                    setTimeout(() => {
+                        canvasLocked = false;
+
+                        
+                    // Reenables the 'Post Changes' and 'Show Sample' buttons
+                    document.getElementById('post-button').disabled = false;
+                    // Reenables the 'Show Sample' button
+                    document.getElementById('sample-button').disabled = false;
+                    }, time);
+                }
+            }
             /*
              * DESCRIPTION:
              * Initializes event listeners for user interactions.
@@ -1320,6 +1420,10 @@
                     setTimeout(() => {
                         movePopup.classList.remove('show');
                     }, 5000);
+                } else { 
+                    // Trigger glow effect for sample clicks
+                    lockCanvas(3000)
+                    triggerGlowEffect(3000, sampleClicks_);
                 }
                 // Check if the user has already scrolled down
                 if ((initialMovement && !isScrollPopupShown) && (document.body.scrollHeight > document.documentElement.clientHeight && window.scrollY === 0)){
@@ -1351,7 +1455,6 @@
                     }, 5000);
                 }
                 else{
-
                 const finalTabLabel = 'Final';
                 const finalContentId = `content-${finalTabLabel}`;
 
@@ -1365,13 +1468,9 @@
                     createPopulationSummary(finalContentId, zoneIndex);
                     createPopulationTable(finalContentId, zoneIndex);
 
-                    // Lock down the canvas to prevent further interaction
-                    lockCanvas();
-
-                    // Disables the 'Post Changes' and 'Show Sample' buttons
-                    document.getElementById('post-button').disabled = true;
-                    // Disables the 'Show Sample' button
-                    document.getElementById('sample-button').disabled = true;
+                    // Locks the canvas and triggers the glow effect based on the totalPopulation
+                    lockCanvas()
+                    triggerGlowEffect(30000, totalClicks_);
                 }
                 });
 
