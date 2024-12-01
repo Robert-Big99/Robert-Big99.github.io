@@ -1149,7 +1149,7 @@
                 summary.className = 'summary sample-summary';
 
                 // Creates the sample summary element
-                summary.innerHTML = `<p>Sample: ${sampleCounter} | Sample Population: ${population} | Number of clicks: ${sampleClicks} | Click-Through Rate: ${ctr}%</p>`;
+                summary.innerHTML = `<p>Day: ${sampleCounter} | Sample Population: ${population} | Number of clicks: ${sampleClicks} | Click-Through Rate: ${ctr}%</p>`;
                 document.getElementById(contentId).appendChild(summary);
                 
             }
@@ -1173,7 +1173,7 @@
 
                 // Constructs the HTML table
                 table.innerHTML = `
-                    <tr><th colspan="${data.length + 1}">Sample ${sampleIndex}</th></tr>
+                    <tr><th colspan="${data.length + 1}">Day ${sampleIndex}</th></tr>
                     <tr><th>User</th>${data.map((_, i) => `<th>${i + 1}</th>`).join('')}</tr>
                     <tr><td>Clicked</td>${data.map(v => `<td>${v}</td>`).join('')}</tr>
                 `;
@@ -1191,7 +1191,7 @@
              * OUTPUT:
              * Adds a population summary to the content
              */
-            function createPopulationSummary(contentId, zoneIndex) {
+            function createPopulationSummary(contentId) {
                 const data = zonePopulations[`zone${zoneIndex + 1}`];
                 data.splice(- (Math.random() * 100 ));
                 const populationSize = data.length;
@@ -1201,7 +1201,7 @@
 
                 const summary = document.createElement('div');
                 summary.className = 'summary population';
-                summary.innerHTML = `<p>Zone ${zoneIndex + 1} | Number of Users: ${populationSize} | Number of clicks: ${totalClicks} | Click-Through Rate: ${ctr}%</p>`;
+                summary.innerHTML = `<p>Monthly Results | Number of Users: ${populationSize} | Number of clicks: ${totalClicks} | Click-Through Rate: ${ctr}%</p>`;
                 document.getElementById(contentId).appendChild(summary);
             }
             
