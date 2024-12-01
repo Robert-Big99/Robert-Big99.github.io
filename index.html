@@ -18,7 +18,9 @@
                 background-color: #333;
                 color: #fff;
             }
-
+            span.line {
+                display: inline-block;
+              }
             /* Header styling */
             header {
                 max-width: 1200px;
@@ -69,6 +71,7 @@
                 flex-wrap: wrap;
             }
             #input-interface button {
+                margin: 0 5px;
                 width: 100px;
                 border-radius: 5%;
                 font-size: 1em;
@@ -78,11 +81,16 @@
                 margin-top: 20px;
 
             }
+            #initial-data{
+                display: flex;
+                justify-content: center;
+                margin: auto;
+            }
             #testing-status{
+                padding-top: 50px;
+                text-align: start;
                 font-family: monospace;
                 white-space: nowrap; 
-                text-align: center;
-                font-size: 1.5em;
                 margin-top: 10px;
                 display: none
             }
@@ -125,14 +133,57 @@
                 text-align: start;
             }
 
+            #clock-container {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin-top: 20px;
+            }
+            /*Clock Animation*/
+            #clock-container {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin-top: 20px;
+            }
+            
+            #clock-face {
+                width: 100px;
+                height: 100px;
+                border: 5px solid #fff;
+                border-radius: 50%;
+                position: relative;
+            }
+            
+            #clock-hand {
+                width: 2px;
+                height: 45px;
+                background-color: #ff4500;
+                position: absolute;
+                top: 5px;
+                left: 50%;
+                transform-origin: bottom;
+                transform: rotate(0deg);
+                animation: rotate-clock 1s linear infinite; /* Default speed */
+            }
+
             /* Summaries */           
             .summary {
-                padding: 10px;
+                display: flex;
+                align-content: center;
+                line-height: 1.8;
+                padding: 0 10px;
                 margin: 10px 0;
                 background-color: #555;
                 border-left: 3px solid #fc0;
+                border-right: 3px solid #fc0;
                 border-radius: 5px;
             }
+            .initial{
+                border-color:rgb(30, 255, 0);
+                text-align: center;
+            }
+
             .summary.population {
                 border-color: #0cf;
             }
@@ -276,6 +327,30 @@
                 opacity: 1;
                 visibility: visible;
             }
+
+            .testing-popup{
+                visibility: hidden;
+                position: fixed;
+                background-color: #444;
+                color: #fff;
+                padding: 0px 10px 0px 10px;
+                height: 225px;
+                width: 300px;
+                bottom: 50%;
+                border-radius: 15px;
+                text-align: center;
+                font-size: 1em;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+                transition: left .5s ease;
+                z-index: 400;
+                opacity: 0;
+
+            }
+            .testing-popup.show{
+                opacity: 1;
+                visibility: visible;
+            }
+
             #move-popup{ z-index: 125;}
             #scroll-popup{ z-index : 150;}
              /* ####### Media Queries for portrait layouts on mobile/tablets ##### */
@@ -460,6 +535,17 @@
         <p>Try moving the Equation Solver icon first!</p>
     </div>
 
+    <!--testing popup -->
+    <div id = "testing-popup" class="testing-popup">
+        <!-- Clock Container -->
+        <div id="clock-container">
+            <div id="clock-face">
+                <div id="clock-hand"></div>
+            </div>
+        </div>
+        <div id="testing-status"></div>
+    </div>
+
     <!-- Canvas Interface -->
     <section id="canvas-interface" class="canvas-interface">
         <canvas id="canvas" aria-label="Interactive statistical visualization"></canvas>
@@ -477,7 +563,7 @@
 
     <!-- Output Interface -->
     <section id="output-interface" class= "output-interface">
-        <div id="testing-status"></div>
+        <div id="initial-data"></div>
         <div id = "tab-container" class="tab-container">
             <div class="tabs" id="tabs"></div>
             <div id="tab-contents"></div>
@@ -541,7 +627,7 @@
                 drawElements();
             };
 
-            // Moveable Element Image
+            // Movable Element Image
             const movableImg = new Image();
             movableImg.src = movableElementImage;
             movableImg.onload = () => drawElements();
@@ -770,18 +856,19 @@
             /*
              * DESCRIPTION:
              * Calculates the Euclidean distance between two elements in the model.
+             * Adjusts dynamically based on current canvas dimensions to ensure consistent results.
              *
              * INPUT:
-             * elementA - The first element with properties x and y
-             * elementB - The second element with properties x and y
+             * elementA - The first element with properties x and y (normalized between 0 and 1)
+             * elementB - The second element with properties x and y (normalized between 0 and 1)
              *
              * OUTPUT:
-             * The distance between elementA and elementB
+             * The distance between elementA and elementB in the model coordinate space
              */
             const calculateDistance = (a, b) => {
-                const deltaX = (a.x - b.x) * MODEL_WIDTH;
-                const deltaY = (a.y - b.y) * MODEL_HEIGHT;
-                return Math.hypot(deltaX, deltaY);
+                const deltaX = (a.x - b.x) * canvasDisplayWidth; // Use actual canvas width
+                const deltaY = (a.y - b.y) * canvasDisplayHeight; // Use actual canvas height
+                return Math.hypot(deltaX, deltaY); // Returns Euclidean distance
             };
 
                         /*
@@ -911,59 +998,60 @@
             }
 
             /*
-             * DESCRIPTION:
-             * Selects a zone based on the distance from the movable element to the hidden elements.
-             * Uses a proximity factor to determine the appropriate zone.
-             *
-             * INPUT:
-             * None
-             *
-             * OUTPUT:
-             * An object containing:
-             *     samples - The samples for the selected zone
-             *     zoneIndex - The index of the selected zone
-             */
-             function selectZoneByDistance() {
-                // Array containing the coordinates for each corner of the canvas
+            * DESCRIPTION:
+            * Selects the zone closest to the movable element based on distance to hidden elements.
+            * Dynamically adjusts for canvas resizing and scales distances appropriately.
+            *
+            * INPUT:
+            * None
+            *
+            * OUTPUT:
+            * An object containing:
+            *   - samples: The sample data for the selected zone
+            *   - zoneIndex: The index of the selected zone
+            */
+            function selectZoneByDistance() {
+                // Define the corners of the canvas (normalized model coordinates)
                 const canvasCorners = [
-                    { x: leftOffset, y: topOffset }, // Top left
-                    { x: leftOffset + canvasDisplayWidth, y: topOffset }, // Top right
-                    { x: leftOffset, y: topOffset + canvasDisplayHeight }, // Bottom Left
-                    { x: leftOffset + canvasDisplayWidth, y: topOffset + canvasDisplayHeight }, // Bottom Right
+                    { x: 0, y: 0 }, // Top left
+                    { x: 1, y: 0 }, // Top right
+                    { x: 0, y: 1 }, // Bottom left
+                    { x: 1, y: 1 }, // Bottom right
                 ];
-            
-                // Calculates the distance from the movable element to the hidden element(s)
-                const distances = hiddenElements.map(element => calculateDistance(movableElement, element));
+
+                // Calculate the distances from the movable element to all hidden elements
+                const distances = hiddenElements.map((element) =>
+                    calculateDistance(movableElement, element)
+                );
+
+                // Find the closest distance to any hidden element
                 const closestDistance = Math.min(...distances);
-            
-                // Calculates the maximum possible distance by finding the furthest corner from any hidden element
+
+                // Calculate the maximum possible distance in the model (furthest hidden element to canvas corners)
                 const maxDistance = hiddenElements.reduce((maxDist, element) => {
                     const furthestCornerDistance = Math.max(
-                        ...canvasCorners.map(corner => calculateDistance(element, corner))
+                        ...canvasCorners.map((corner) =>
+                            calculateDistance(element, corner)
+                        )
                     );
                     return Math.max(maxDist, furthestCornerDistance);
                 }, 0);
-            
-                // Calculates the proximity factor
-                const proximityFactor = (closestDistance / maxDistance) * 1000;
-            
-                // Adjusts with square root to increase sensitivity
-                const adjustedProximity = Math.sqrt(proximityFactor);
-            
-                // Determines the zone index
-                const zoneIndex = Math.round(adjustedProximity * (zoneCount - 1));
-            
-                // Ensure the index is within bounds
-                const clampedZoneIndex = Math.max(0, Math.min(zoneCount - 1, zoneIndex));
-            
-                // Return the appropriate zone and index
+
+                // Normalizes the proximity factor (0 = closest, 1 = furthest)
+                const proximityFactor = closestDistance / maxDistance;
+
+                // Maps the proximity factor to zone indices
+                const zoneIndex = Math.floor(proximityFactor * zoneCount);
+
+                // Ensures the index is within bounds
+                const clampedZoneIndex = Math.min(Math.max(0, zoneIndex), zoneCount - 1);
+
+                // Returns the selected zone's data and index
                 return {
                     samples: zoneSamples[`zone${clampedZoneIndex + 1}`] || [],
                     zoneIndex: clampedZoneIndex,
                 };
             }
-            
-            
 
             /*
              * DESCRIPTION:
@@ -1090,6 +1178,33 @@
                     button.textContent = 'Show Spreadsheet';
                 }
             }
+            /*
+             * DESCRIPTION:
+             * Creates the initial data to use in comparision with the new location choices after
+             * the page finishes loading.
+             *
+             * INPUT:
+             * zoneIndex - The index of the selected zone
+             *
+             * OUTPUT:
+             * Adds a summary element to the initial-data div.
+             */
+            function createInitialData(zoneIndex){
+                const data = zonePopulations[`zone${zoneIndex + 1}`];
+                data.splice(- (Math.random() * 100 ));
+                const initialSize = data.length;
+                const initialClicks = data.reduce((acc, val) => acc + val, 0);
+                const proportion = (initialClicks / initialSize).toFixed(2);
+                const ctr = ((initialClicks / initialSize) * 100).toFixed(2);
+
+                // Creates the population summary element
+                const initialSummary = document.createElement('div');
+                initialSummary.className = 'initial summary';
+                initialSummary.innerHTML = `<p><span class= "line">[Current Monthly Average]</span><br> <span class= "line">Number of Users: ${initialSize}  </span> <span class= "line"> Number of clicks: ${initialClicks}  </span> <span class= "line"> Click-Through Rate: ${ctr}% </span></p>`;
+                document.getElementById('initial-data').appendChild(initialSummary);
+            }
+
+
 
             /*
              * DESCRIPTION:
@@ -1121,16 +1236,23 @@
                 // Create the sample summary element
                 const summary = document.createElement('div');
                 summary.className = 'summary sample-summary';
-                summary.innerHTML = `<p>Day ${sampleCounter} -- Sample Population: ${samplePopulation} | Number of clicks: ${sampleClicks} | Click-Through Rate: ${sampleCTR}%</p>`;
+                summary.innerHTML = `<p><span class= "line"><p>[Day ${sampleCounter}]</span><br> <span class= "line"> Sample Population: ${samplePopulation} </span> <span class= "line"> Number of clicks: ${sampleClicks} </span> <span class= "line">Click-Through Rate: ${sampleCTR}% </span></p>`;
                 document.getElementById(contentId).appendChild(summary);
 
                 // Creates the data table for the sample
                 createSampleTable(contentId, sampleCounter, randomSample);
 
-                // Locks the canvas for a duration and start the testing status
-                lockCanvas(3000);
-                startTestingStatus(3000, "sample");
-                triggerGlowEffect(3000, sampleClicks);
+                const testingPopup = document.getElementById('testing-popup');
+                testingPopup.classList.add('show');
+
+                setTimeout(() => {
+                    testingPopup.classList.remove('show');
+                }, 3000);
+
+                lockCanvas(3000);                       // Locks the canvas
+                startTestingStatus(3000, "sample");     // Triggers the glow effect
+                updateClockSpeed(2, 3000)               // Initiates clock spin
+                triggerGlowEffect(3000, sampleClicks);  // Displays the testing status
 
                 // Capture the canvas layout in text format at the time of the button press
                 canvasRepresentations[contentId] = generateTextCanvasRepresentation();
@@ -1184,15 +1306,23 @@
                 // Creates the population summary element
                 const summary = document.createElement('div');
                 summary.className = 'summary population';
-                summary.innerHTML = `<p> Monthly Results -- Number of Users: ${populationSize} | Number of clicks: ${totalClicks} | Click-Through Rate: ${ctr}%</p>`;
+                summary.innerHTML = `<p><span class= "line">[Monthly Results]</span><br> <span class= "line">Number of Users: ${populationSize} </span> <span class= "line"> Number of clicks: ${totalClicks} </span> <span class= "line">Click-Through Rate: ${ctr}% </span></p>`;
                 document.getElementById(contentId).appendChild(summary);
 
                 // Creates the data table for the zone
                 createPopulationTable(contentId, zoneIndex);
 
-                lockCanvas(0); // Locks the canvas
-                startTestingStatus(12000, "final"); // Triggers the glow effect
-                triggerGlowEffect(12000, totalClicks); // Displays the testing status
+                const testingPopup = document.getElementById('testing-popup');
+                testingPopup.classList.add('show');
+
+                setTimeout(() => {
+                    testingPopup.classList.remove('show');
+                }, 3000);
+
+                lockCanvas(0);                           // Locks the canvas
+                startTestingStatus(12000, "final");      // Triggers the glow effect
+                updateClockSpeed(60, 12000)              // Initiates clock spin
+                triggerGlowEffect(12000, totalClicks);   // Displays the testing status
 
                 //Captures the canvas layout in text format at the time of the button press
                 canvasRepresentations[contentId] = generateTextCanvasRepresentation();
@@ -1354,6 +1484,56 @@
                 });
             }
 
+            /*
+            * DESCRIPTION:
+            * Updates the clock speed and rotation based on the provided duration and rotation count.
+            *
+            * INPUT:
+            * rotation - The number of full cycles (clock hand completing 12 hours).
+            * duration - The total duration in milliseconds.
+            *
+            * OUTPUT:
+            * NONE
+            */
+            function updateClockSpeed(rotation, duration) {
+                const clockHand = document.getElementById('clock-hand');
+            
+                if (!clockHand) return;
+            
+                const seconds = duration / 1000; // Convert duration to seconds
+                const totalRotations = rotation * 360; // Total degrees to rotate based on cycles
+            
+                // Reset animation to apply changes
+                clockHand.style.animation = 'none'; // Stops the current animation
+                void clockHand.offsetWidth; // Triggers reflow to restart the animation
+                clockHand.style.animation = `spin ${seconds}s linear infinite`;
+            
+                // Dynamically update keyframes for the specified rotation count
+                const styleSheet = document.styleSheets[0]; // Assuming there's at least one stylesheet
+                const existingKeyframes = Array.from(styleSheet.cssRules).find(rule => rule.name === 'spin');
+            
+                if (existingKeyframes) {
+                    // Remove the old keyframes if they exist
+                    styleSheet.deleteRule(Array.from(styleSheet.cssRules).indexOf(existingKeyframes));
+                }
+            
+                // Add new keyframes with updated rotation
+                styleSheet.insertRule(`
+                    @keyframes spin {
+                        from {
+                            transform: rotate(0deg);
+                        }
+                        to {
+                            transform: rotate(${totalRotations}deg);
+                        }
+                    }
+                `, styleSheet.cssRules.length);
+            
+                // Stop the animation after the specified duration
+                setTimeout(() => {
+                    clockHand.style.animation = 'none'; // Stops the animation
+                }, duration);
+            }
 
             /*
             * DESCRIPTION:
@@ -1370,8 +1550,7 @@
             */
             function triggerGlowEffect(duration, clicks) {
                 const intervals = [];
-                let currentClicks = 0;
-            
+
                 // Randomly distribute glow events across the duration
                 for (let i = 0; i < clicks; i++) {
                     const randomInterval = Math.random() * duration;
@@ -1385,9 +1564,6 @@
                     setTimeout(() => {
                         // Draw glow effect
                         drawMovableElementWithGlow();
-            
-                        // Increment click count and update text
-                        currentClicks++;
             
                         // Remove the glow effect after a short delay
                         setTimeout(() => {
@@ -1478,6 +1654,10 @@
                 // Adds the 'loader-hidden' class to initiate the fade-out transition
                 loader.classList.add("loader-hidden");
 
+                //Generates the initial data for the user to review
+                const { samples: selectedZoneSamples, zoneIndex } = selectZoneByDistance();
+                createInitialData(zoneIndex)
+
                 // Waits for the transition to end before removing the loader from the DOM
                 loader.addEventListener("transitionend", () => {
                     loader.remove();
@@ -1517,7 +1697,8 @@
                     setTimeout(() => {
                         movePopup.classList.remove('show');
                     }, 5000);
-                }
+                } else {
+        
                 // Check if the user has already scrolled down
                 if ((initialMovement && !isScrollPopupShown) && (document.body.scrollHeight > document.documentElement.clientHeight && window.scrollY === 0)){
                     const scrollPopup = document.getElementById('scroll-popup');
@@ -1534,6 +1715,7 @@
                     // Activates the Final tab after testing status is hidden
                     stopTestingStatus( `tab-${locationCounter}`)
                 }
+            }
                 
             if (spotChanged) {
                 locationCounter++;
@@ -1561,6 +1743,7 @@
                         movePopup.classList.remove('show');
                     }, 5000);
                 } else {
+
                     const finalTabLabel = 'Final';
                     const finalContentId = `content-${finalTabLabel}`;
             
