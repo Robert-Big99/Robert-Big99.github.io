@@ -1191,7 +1191,7 @@
              * OUTPUT:
              * Adds a population summary to the content
              */
-            function createPopulationSummary(contentId) {
+            function createPopulationSummary(contentId, zoneIndex) {
                 const data = zonePopulations[`zone${zoneIndex + 1}`];
                 data.splice(- (Math.random() * 100 ));
                 const populationSize = data.length;
@@ -1201,7 +1201,7 @@
 
                 const summary = document.createElement('div');
                 summary.className = 'summary population';
-                summary.innerHTML = `<p>Monthly Results | Number of Users: ${populationSize} | Number of clicks: ${totalClicks} | Click-Through Rate: ${ctr}%</p>`;
+                summary.innerHTML = `<p> Monthly Results | Number of Users: ${populationSize} | Number of clicks: ${totalClicks} | Click-Through Rate: ${ctr}%</p>`;
                 document.getElementById(contentId).appendChild(summary);
             }
             
