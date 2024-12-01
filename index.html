@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -93,9 +92,8 @@
                 padding: 10px;
             }
             .tab-container {
-                display: none;
+                visibility: hidden;
                 overflow-y: auto;
-                max-height: 30vh;
                 margin: 0 0 20px 0;
                 background-color: #444;
                 border: 1px solid #666;
@@ -159,7 +157,8 @@
 
             /* Loader Styling */
             .loader {
-                position: fixed;
+                overflow: hidden;
+                position: absolute;
                 top: 0;
                 left: 0;
                 width: 100%;
@@ -194,8 +193,9 @@
 
             /* Rotate Prompt */
             #rotate-prompt {
+                overflow:hidden;
                 display: none;
-                position: fixed;
+                position: absolute;
                 top: 0;
                 left: 0;
                 width: 100%;
@@ -801,7 +801,7 @@
 
                 // Hides the tab container
                 const tabContainer = document.getElementById('tab-container');
-                tabContainer.style.display = 'none';
+                tabContainer.style.visibility = 'hidden';
 
                 const testingStatus = document.getElementById('testing-status');
                 testingStatus.style.display = 'block';
@@ -832,25 +832,35 @@
             }
 
             /*
-             * DESCRIPTION:
-             * Stops the "Testing Changes" animation by hiding the message and stopping the ellipses animation.
-             * Shows the tab container again.
-             *
-             * INPUT:
-             * ellipsesInterval - The interval ID returned by `startTestingStatus`, used to stop the animation.
-             *
-             * OUTPUT:
-             * None. Clears the animation and restores the visibility of the tab container.
+            * DESCRIPTION:
+            * Stops the "Testing Changes" animation by hiding the message and stopping the ellipses animation.
+            * Also ensures the most recent tab is activated after the status disappears.
+            *
+            * INPUT:
+            * ellipsesInterval - The interval ID returned by `startTestingStatus`, used to stop the animation.
+            * latestTabId - The ID of the most recent tab created.
+            *
+            * OUTPUT:
+            * None. Clears the animation, hides the text, and activates the latest tab.
             */
-            function stopTestingStatus(ellipsesInterval) {
+            function stopTestingStatus(ellipsesInterval, latestTabId ) {
                 clearInterval(ellipsesInterval); // Stop the ellipses animation
 
                 const testingStatus = document.getElementById('testing-status');
                 testingStatus.style.display = 'none'; // Hide the text
 
+                 // Activate the latest tab if a valid ID is provided
+                if (latestTabId) {
+                    const tab = document.getElementById(latestTabId);
+                    const contentId = `content-${latestTabId.replace('tab-', '')}`;
+                    if (tab && contentId) {
+                        showTab(latestTabId, contentId); // Activate the latest tab
+                    }
+                }
+
                 // Show the tab container
                 const tabContainer = document.getElementById('tab-container');
-                tabContainer.style.display = 'block';
+                tabContainer.style.visibility = 'visible';
             }
             
             /*
@@ -1145,7 +1155,7 @@
 
                 // Constructs the HTML table
                 table.innerHTML = `
-                    <tr><th colspan="${data.length + 1}">Sample ${sampleIndex}</th></tr>
+                    <tr><th colspan="${data.length + 1}">Day ${sampleIndex}</th></tr>
                     <tr><th>User</th>${data.map((_, i) => `<th>${i + 1}</th>`).join('')}</tr>
                     <tr><td>Clicked</td>${data.map(v => `<td>${v}</td>`).join('')}</tr>
                 `;
@@ -1520,6 +1530,9 @@
                     setTimeout(() => {
                         scrollPopup.classList.remove('show');
                     }, 5000);
+
+                    // Activates the Final tab after testing status is hidden
+                    stopTestingStatus( `tab-${locationCounter}`)
                 }
                 
             if (spotChanged) {
@@ -1557,6 +1570,8 @@
                     }
                     createPopulationSummary(finalContentId, zoneIndex);
 
+                    // Activates the Final tab after testing status is hidden
+                    stopTestingStatus(ellipsesInterval, `tab-${locationCounter}`)
                 }
             });
 
