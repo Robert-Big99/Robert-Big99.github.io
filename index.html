@@ -79,7 +79,9 @@
                 margin-top: 20px;
 
             }
-            #output-interface > #testing-status{
+            #testing-status{
+                font-family: monospace;
+                white-space: nowrap; 
                 text-align: center;
                 font-size: 1.5em;
                 margin-top: 10px;
@@ -1388,9 +1390,6 @@
                 // Sort intervals to ensure sequential updates
                 intervals.sort((a, b) => a - b);
             
-                // Lock canvas during glow effect
-                lockCanvas(duration);
-            
                 intervals.forEach((interval) => {
                     setTimeout(() => {
                         // Draw glow effect
@@ -1515,14 +1514,39 @@
                 });
             });
 
+            let isScrollPopupShown = false; 
+
             // Event listener for the 'Show Sample' button
             document.getElementById('sample-button').addEventListener('click', () => {
-                if (spotChanged) {
-                    locationCounter++;
-                    sampleCounter = 0; // Reset sample counter for new location
-                    spotChanged = false;
-                    addTab(locationCounter);
+                if (!initialMovement){
+                    const movePopup = document.getElementById('move-popup');
+                    movePopup.classList.add('show');
+
+                    // Automatically hide the popup after 5 seconds
+                    setTimeout(() => {
+                        movePopup.classList.remove('show');
+                    }, 5000);
                 }
+                // Check if the user has already scrolled down
+                if ((initialMovement && !isScrollPopupShown) && (document.body.scrollHeight > document.documentElement.clientHeight && window.scrollY === 0)){
+                    const scrollPopup = document.getElementById('scroll-popup');
+            
+                    // Show the popup with the slide-up animation
+                    scrollPopup.classList.add('show');
+                    isScrollPopupShown = true;
+            
+                    // Automatically hide the popup after 5 seconds
+                    setTimeout(() => {
+                        scrollPopup.classList.remove('show');
+                    }, 5000);
+                }
+                
+            if (spotChanged) {
+                locationCounter++;
+                sampleCounter = 0; // Reset sample counter for new location
+                spotChanged = false;
+                addTab(locationCounter);
+            }
                 sampleCounter++;
             
                 const { samples: selectedZoneSamples } = selectZoneByDistance();
@@ -1538,10 +1562,9 @@
                 createSampleSummary(contentId, sampleCounter, samplePopulation, sampleClicks, sampleCTR);
                 createSampleTable(contentId, sampleCounter, randomSample);
 
-                
-                // Triggers the glow effect and displays the testing status
-                startTestingStatus(3000, "sample");
-                triggerGlowEffect(3000, sampleClicks);
+                lockCanvas(3000); // Locks the canvas
+                startTestingStatus(3000, "sample"); // Triggers the glow effect
+                triggerGlowEffect(3000, sampleClicks); // Displays the testing status
 
                 //Captures the canvas layout in text format at the time of the button press
                 canvasRepresentations[contentId] = generateTextCanvasRepresentation();
@@ -1573,9 +1596,9 @@
 
                     const totalClicks = zonePopulations[`zone${zoneIndex + 1}`].reduce((acc, val) => acc + val, 0);
 
-                    // Triggers the glow effect and displays the testing status
-                    startTestingStatus(12000, "final");
-                    triggerGlowEffect(12000, totalClicks);
+                    lockCanvas(0); // Locks the canvas
+                    startTestingStatus(12000, "final"); // Triggers the glow effect
+                    triggerGlowEffect(12000, totalClicks); // Displays the testing status
 
                     //Captures the canvas layout in text format at the time of the button press
                     canvasRepresentations[finalContentId] = generateTextCanvasRepresentation();
