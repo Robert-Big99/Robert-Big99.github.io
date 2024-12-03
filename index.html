@@ -10,13 +10,18 @@
     <style>
         * { box-sizing:border-box; }
 
-            /* Global styles and presets */
+            /*######## Global styles and presets ########*/
             body {
                 margin: 0;
                 padding: 0;
                 font-family: Arial,sans-serif;
                 background-color: #333;
                 color: #fff;
+            }
+
+            /* Prevent body scrolling when rotate prompt is shown */
+            body.no-scroll {
+                overflow: hidden;
             }
             span.line {
                 display: inline-block;
@@ -26,11 +31,17 @@
                 max-width: 1200px;
                 margin: auto;
                 text-align: center;
-                padding: 5px;
+                padding-bottom: 15px;
                 background-color: #444;
-                border-radius: 1% 1% 1% 1%;
+                border-bottom: 3px solid grey;
+                border-radius: 0% 0% 10% 10%;
+            }
+            header h1 {
+                margin: 0;
+                font-size: calc((1vw + 1vh));
             }
 
+            /* Button styling */
             button {
                 background-color: #555;
                 color: #fff;
@@ -44,12 +55,8 @@
                 background-color: #777;
                 cursor: not-allowed;
             }
-
-            header h1 {
-                margin: 0;
-                font-size: 2em;
-            }
-            /* Canvas Container */
+            /*############################################*/
+            /*############## Canvas Interface ############*/
             #canvas-interface {
                 position: relative;
                 aspect-ratio: 3 / 2; /* Maintains 3:2 aspect ratio */
@@ -62,8 +69,8 @@
                 height: 100%;
                 display: block;
             }
-
-            /* Input Interface */        
+            /*############################################*/
+            /*############## Input Interface #############*/        
             #input-interface {
                 display: flex;
                 justify-content: center;
@@ -72,28 +79,23 @@
             }
             #input-interface button {
                 margin: 0 5px;
-                width: 100px;
+                width: 15%;
                 border-radius: 5%;
-                font-size: 1em;
+                font-size: calc((1vw + 1vh));
                 padding: 10px 20px;
             }
+            /*###########################################*/
+            /*############# Output Interface ############*/
             #output-interface {
                 margin-top: 20px;
 
             }
-            #initial-data{
+            #initial-summary{
                 display: flex;
                 justify-content: center;
                 margin: auto;
             }
-            #testing-status{
-                padding-top: 50px;
-                text-align: start;
-                font-family: monospace;
-                white-space: nowrap; 
-                margin-top: 10px;
-                display: none
-            }
+            #initial-summary p {margin: auto; padding: 1% 0;}
             /* Tabs and Content */
             .tab-content > button {
                 margin: auto;
@@ -132,19 +134,35 @@
             tbody :nth-child(1){
                 text-align: start;
             }
+            /*###########################################*/
+            /*############## Testing Popup ##############*/
+            /* Testing popup div*/
+            .testing-popup{
+                width: 100%;
+                visibility: visible;
+                background-color: #444;
+                color: #fff;
+                border-radius: 15px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+                transition: all .5s ease;
 
-            #clock-container {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                margin-top: 20px;
             }
-            /*Clock Animation*/
+
+            /*Status text div for testing popup*/
+            #testing-status{
+                padding: 0 10px;
+                font-size: calc((1vw + 1vh)/2);
+                text-align: start;
+                font-family: monospace;
+                white-space: nowrap;
+            }
+
+            /*Clock Animation for testing popup*/
             #clock-container {
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                margin-top: 20px;
+                margin: 50px 0px;
             }
             
             #clock-face {
@@ -166,6 +184,7 @@
                 transform: rotate(0deg);
                 animation: rotate-clock 1s linear infinite; /* Default speed */
             }
+            /*###########################################*/
 
             /* Summaries */           
             .summary {
@@ -182,6 +201,7 @@
             .initial{
                 border-color:rgb(30, 255, 0);
                 text-align: center;
+                width: 80%;
             }
 
             .summary.population {
@@ -244,7 +264,6 @@
 
             /* Rotate Prompt */
             #rotate-prompt {
-                overflow:hidden;
                 display: none;
                 position: absolute;
                 top: 0;
@@ -259,38 +278,45 @@
                 z-index:200;
             }
             #rotate-prompt p {
-                font-size: 1.5em;
+                font-size: calc((1vw + 1vh) * 1.5);
                 margin: 0;
                 padding: 20px;
             }
             
             /* Initial Popup */
-            .initialPopup {
-                display: none;
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0,0,0,0.8);
-                z-index: 220;
+            #info-popup {
+                align-content: center;
                 justify-content: center;
-                align-items: center;
+                display: none; /* Hidden by default */
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%); 
+                width: 100vw;
+                height: 100vh;
+                background-color: rgba(0, 0, 0, 0.8); 
+                z-index: 220; 
+                padding: 20px; 
+                border-radius: 10px; 
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); 
+                color: #fff; 
+                text-align: center; 
             }
             .popup-content {
+                margin-top: 10vh;
                 background-color: #444;
                 color: #fff;
                 padding: 20px;
                 border-radius: 10px;
                 text-align: center;
-                width: 90%;
+                max-height: 450px;
                 max-width: 400px;
                 box-shadow: 0 4px 6px rgba(0,0,0,0.3);
             }
             #popup-close-button {
                 margin-top: 15px;
                 padding: 10px 20px;
-                font-size: 1em;
+                font-size: calc((1vw + 1vh));
                 background-color: #555;
                 color: #fff;
                 border: none;
@@ -328,32 +354,13 @@
                 visibility: visible;
             }
 
-            .testing-popup{
-                visibility: hidden;
-                position: fixed;
-                background-color: #444;
-                color: #fff;
-                padding: 0px 10px 0px 10px;
-                height: 225px;
-                width: 300px;
-                bottom: 50%;
-                border-radius: 15px;
-                text-align: center;
-                font-size: 1em;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-                transition: left .5s ease;
-                z-index: 400;
-                opacity: 0;
-
-            }
-            .testing-popup.show{
-                opacity: 1;
-                visibility: visible;
-            }
-
+            #dynamic-border{display: none;}
             #move-popup{ z-index: 125;}
             #scroll-popup{ z-index : 150;}
+
              /* ####### Media Queries for portrait layouts on mobile/tablets ##### */
+
+              /*
              @media only screen and (orientation: portrait) and (hover: none) and (min-height: 501px){
                 body{
                     display: grid;
@@ -388,90 +395,160 @@
             }
 
             /* Displays the rotate prompt for all phone screens that are too small to properly display the content in portrait mode*/
-            @media only screen and (orientation: portrait) and (hover: none) and (max-width: 500px){
+             
+            @media only screen and (hover: none) and ((max-width: 500px) or (max-height: 500px)){
                 #rotate-prompt {
                     display: initial;
+                }
+                .initial-popup {
+                    width: 90%; 
+                    height: auto; 
+                    padding: 15px; 
                 }
             }
 
             /* ####### Media Queries for landscape on mobile ##### */
-            @media only screen and (orientation: landscape) and (hover: none) and (max-height: 500px){
+
+            
+            @media only screen and (orientation: landscape) and (max-height: 800px){
                 body{
                     display: grid;
-                    grid-template-columns: 20% repeat(4, minmax(0, 1fr));
-                    grid-template-rows: 10% repeat(4, minmax(0, 1fr));
+                    grid-template-columns: repeat(16, 6.25%);
+                    grid-template-rows: repeat(16, 6.25%);
                 }
-                header{
-                    font-size: 0.8em;
+                header {
                     width: 100%;
+                    max-width: 100vw;
+                    padding-bottom: 5px;
                     margin: auto;
                     grid-row: 1/2;
-                    grid-column: 1/6;
+                    grid-column: 1/17;
 
                 }
+                header h1 {
+                    font-size: calc((1vw + 1vh) * 1.25);
+                }
+                #testing-popup{
+                    padding: 0;
+                    grid-column: 1/4;
+                    grid-row: 2/3;
+                }
+                #testing-status{
+                    font-size: calc((1vw + 1vh) * .6);
+                }
                 #canvas-interface{
-                    max-width: 1000px;
-                    grid-column: 2/6;
-                    grid-row: 2/6;
+                    max-width: 950px;
+                    grid-column: 5/15;
+                    grid-row: 2/8;
                 }
                 #input-interface-wrapper{
                     justify-content: center;
                     align-items: center;
-                    grid-row: 2/5;
-                    grid-column: 1/2;  
+                    grid-row: 3/6;
+                    grid-column: 1/4;  
                 }
                 #input-interface{
-                    width: 20%;
-                    position: fixed;
                     display: flex;
                     flex-direction: column;
                 }
                 #input-interface button{
-                    font-size: 0.9em;
-                    width: 80%;
-                    margin: 2.5% 0% 5% 12.5%;
+                    font-size: calc((1vw + 1vh) * 0.8);
+                    width: 85%;
+                    margin: 0% auto 5% auto;
                 }
                 #input-interface :first-child{
-                    margin-top: 5%;
+                    margin-top: -5%;
+                }
+                #initial-summary{
+                    grid-column: 1/4;
+                    grid-row: 6/7; 
+                }
+                #initial-summary > .initial {
+                    margin-bottom: 0;
+                    border-radius: 15px;
+                    border: none;
+                    width: 100%;
+                }
+                #initial-summary span{
+                    font-size: calc((1vw + 1vh) * .6);
+                    margin-top: 20px;
+                    text-wrap: nowrap;
+                }
+                #dynamic-border{
+                    display: block;
+                    border: 3px solid grey;
+                    background-color: #303030;
+                    border-radius: 15px;
+                    grid-column: 1/4;
+                    grid-row: 2/7;
+                    z-index: -10; 
                 }
                 #output-interface{
-                    grid-column: 1/6;
-                    grid-row: 6/7;
+                    margin-top: 0;
+                    grid-column: 1/17;
+                    grid-row: 13/17;
                 }
                 .tabs { flex-direction: row; }
-                .initialPopup .popup-content{
-                    font-size: 0.9em;
-                    max-height: 90vh;
+                #info-popup .popup-content {
+                    font-size: calc((1vw + 1vh) * 1.25);
+                    margin-top: 0;
+                    height: 95vh !important;
+
+                }
+                #popup-close-button {
+                    padding: 5px 10px;
                 }
                 .suggestion-popup{
                     font-size: 0.9em;
                     grid-column: 1/2;
                     grid-row: 1/6;
-                    width: 18%;
+                    width: 15%;
                     height: 90px;
-                    left: 10%;
+                    left: 90%;
                 }
             }
             /* ####### Media Queries for landscape on desktop ##### */
-            @media only screen and (orientation: landscape) and (hover: hover) and (min-height: 500px){                 
+            @media only screen and (orientation: landscape) and (hover: hover){                 
                 body{
                     display: grid;
-                    grid-template-columns: repeat(5, minmax(0, 1fr));
-                    grid-template-rows: auto (5, minmax(0, 1fr)) ;
+                    grid-template-columns: repeat(16, 6.25%);
+                    grid-template-rows: repeat(16, 6.25%);
                 }
                 header {
                     width: 80%;
                     margin-bottom: 1%;
-                    grid-column: 1/6;
+                    grid-column: 1/17;
                     grid-row: 1/2;
                 }
                 #canvas-interface{
-                    grid-column: 2/5;
-                    grid-row: 2/5; 
+                    grid-column: 5/13;
+                    grid-row: 2/10; 
+                }
+                #testing-popup{
+                    grid-column: 2/4;
+                    grid-row: 4/5;
+                }
+                #testing-status{
+                    font-size: calc((1vw + 1vh) * .40);
+                }
+                #initial-summary{
+                    grid-column: 2/4;
+                    grid-row: 5/6; 
+                }
+                #initial-summary > .initial {
+                    margin-bottom: 0;
+                    border-radius: 15px;
+                    border: none;
+                    width: 100%;
+                }
+                #initial-summary span{
+                    font-size: calc((1vw + 1vh) * .45);
+                    margin-top: 10px;
+                    text-wrap: nowrap;
                 }
                 #input-interface-wrapper{
-                    grid-column: 1/6;
-                    grid-row: 5/6; 
+                    grid-column: 5/13;
+                    grid-row: 10/11; 
                 }
                 #input-interface{
                     margin: 0;
@@ -484,8 +561,8 @@
                     font-size: 1.1em;
                 }
                 #output-interface{
-                    grid-column: 1/6;
-                    grid-row: 6/7; 
+                    grid-column: 1/17;
+                    grid-row: 11/17; 
                 }
                 .tabs {
                     flex-direction: row;
@@ -501,11 +578,11 @@
 
     <!-- Rotate Prompt -->
     <div id="rotate-prompt">
-        <p>Please rotate your device for the best experience.</p>
+        <p>Please swap to a desktop or tablet for the best experience.</p>
     </div>
 
     <!-- Initial popup -->
-    <div id="info-popup" class="initialPopup">
+    <div id="info-popup" class="initial-Popup">
         <div class="popup-content">
             <h2>Welcome to Stats Teacher!</h2>
             <p>
@@ -560,10 +637,11 @@
             <button id ="reset-button" title ="Reset the application">Reset</button>
         </nav>
     </div>
-
+    <div id="dynamic-border"></div>
+    <!-- initial Data output -->
+    <div id="initial-summary"></div>
     <!-- Output Interface -->
     <section id="output-interface" class= "output-interface">
-        <div id="initial-data"></div>
         <div id = "tab-container" class="tab-container">
             <div class="tabs" id="tabs"></div>
             <div id="tab-contents"></div>
@@ -891,7 +969,7 @@
                 tabContainer.style.visibility = 'hidden';
 
                 const testingStatus = document.getElementById('testing-status');
-                testingStatus.style.display = 'block';
+                testingStatus.style.visibility = 'visible';
                 testingStatus.textContent = ''; // Clear previous text
 
                 let ellipses = '';
@@ -934,7 +1012,7 @@
                 clearInterval(ellipsesInterval); // Stop the ellipses animation
 
                 const testingStatus = document.getElementById('testing-status');
-                testingStatus.style.display = 'none'; // Hide the text
+                testingStatus.style.visibility = 'hidden'; // Hide the text
 
                  // Activate the latest tab if a valid ID is provided
                 if (latestTabId) {
@@ -1180,7 +1258,7 @@
             }
             /*
              * DESCRIPTION:
-             * Creates the initial data to use in comparision with the new location choices after
+             * Creates the initial data to use in comparison with the new location choices after
              * the page finishes loading.
              *
              * INPUT:
@@ -1189,7 +1267,7 @@
              * OUTPUT:
              * Adds a summary element to the initial-data div.
              */
-            function createInitialData(zoneIndex){
+            function createInitialSummary(zoneIndex){
                 const data = zonePopulations[`zone${zoneIndex + 1}`];
                 data.splice(- (Math.random() * 100 ));
                 const initialSize = data.length;
@@ -1200,8 +1278,8 @@
                 // Creates the population summary element
                 const initialSummary = document.createElement('div');
                 initialSummary.className = 'initial summary';
-                initialSummary.innerHTML = `<p><span class= "line">[Current Monthly Average]</span><br> <span class= "line">Number of Users: ${initialSize}  </span> <span class= "line"> Number of clicks: ${initialClicks}  </span> <span class= "line"> Click-Through Rate: ${ctr}% </span></p>`;
-                document.getElementById('initial-data').appendChild(initialSummary);
+                initialSummary.innerHTML = `<p><span class= "line">[Current Monthly Average]</span> <span class= "line">Number of Users: ${initialSize}</span> <span class= "line"> Number of clicks: ${initialClicks}  </span> <span class= "line"> Click-Through Rate: ${ctr}% </span></p>`;
+                document.getElementById('initial-summary').appendChild(initialSummary);
             }
 
 
@@ -1241,13 +1319,6 @@
 
                 // Creates the data table for the sample
                 createSampleTable(contentId, sampleCounter, randomSample);
-
-                const testingPopup = document.getElementById('testing-popup');
-                testingPopup.classList.add('show');
-
-                setTimeout(() => {
-                    testingPopup.classList.remove('show');
-                }, 3000);
 
                 lockCanvas(3000);                       // Locks the canvas
                 startTestingStatus(3000, "sample");     // Triggers the glow effect
@@ -1311,13 +1382,6 @@
 
                 // Creates the data table for the zone
                 createPopulationTable(contentId, zoneIndex);
-
-                const testingPopup = document.getElementById('testing-popup');
-                testingPopup.classList.add('show');
-
-                setTimeout(() => {
-                    testingPopup.classList.remove('show');
-                }, 3000);
 
                 lockCanvas(0);                           // Locks the canvas
                 startTestingStatus(12000, "final");      // Triggers the glow effect
@@ -1656,7 +1720,7 @@
 
                 //Generates the initial data for the user to review
                 const { samples: selectedZoneSamples, zoneIndex } = selectZoneByDistance();
-                createInitialData(zoneIndex)
+                createInitialSummary(zoneIndex)
 
                 // Waits for the transition to end before removing the loader from the DOM
                 loader.addEventListener("transitionend", () => {
