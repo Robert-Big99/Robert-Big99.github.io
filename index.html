@@ -70,7 +70,10 @@
                 display: block;
             }
             /*############################################*/
-            /*############## Input Interface #############*/        
+            /*############## Input Interface #############*/ 
+            #input-interface-wrapper{
+                min-width: 200px;
+            }      
             #input-interface {
                 display: flex;
                 justify-content: center;
@@ -95,7 +98,10 @@
                 justify-content: center;
                 margin: auto;
             }
-            #initial-summary p {margin: auto; padding: 1% 0;}
+            #initial-summary p {
+                margin: auto;
+                padding: 1% 0;
+            }
             /* Tabs and Content */
             .tab-content > button {
                 margin: auto;
@@ -138,6 +144,7 @@
             /*############## Testing Popup ##############*/
             /* Testing popup div*/
             .testing-popup{
+                min-width: 200px;
                 width: 100%;
                 visibility: visible;
                 background-color: #444;
@@ -199,6 +206,7 @@
                 border-radius: 5px;
             }
             .initial{
+                min-width: 200px;
                 border-color:rgb(30, 255, 0);
                 text-align: center;
                 width: 80%;
@@ -354,7 +362,10 @@
                 visibility: visible;
             }
 
-            #dynamic-border{display: none;}
+            #dynamic-border{
+                display: none;
+                min-width: 200px;
+            }
             #move-popup{ z-index: 125;}
             #scroll-popup{ z-index : 150;}
 
@@ -427,6 +438,15 @@
                 }
                 header h1 {
                     font-size: calc((1vw + 1vh) * 1.25);
+                }
+                #info-popup p {
+                    font-size: calc((1vw + 1vh) * .6);
+                }
+                #info-popup label{
+                    font-size: calc((1vw + 1vh) * .6);
+                }
+                #popup-close-button {
+                    font-size: calc((1vw + 1vh) * .5);
                 }
                 #testing-popup{
                     padding: 0;
