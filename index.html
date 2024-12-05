@@ -389,8 +389,8 @@
                 }
             }
 
-            /* ####### Media Queries for tablets or small monitors */            
-            @media only screen and (max-width: 1000px){
+            /* ####### Media Queries for landscape on tablets or small monitors */            
+            @media only screen and (orientation: landscape) and (max-width: 1000px){
                 header {
                     width: 100%;
                     margin-bottom: 1%;
@@ -467,8 +467,8 @@
                     flex-direction: row;
                 }
             }
-            /* ####### Media Queries for larger monitors ##### */
-            @media only screen and (min-width: 1001px){                 
+            /* ####### Media Queries for landscape on large monitors ##### */
+            @media only screen and (orientation: landscape) and (min-width: 1001px){                 
                 header {
                     width: 80%;
                     margin-bottom: 1%;
@@ -516,7 +516,7 @@
                     grid-row: 12/13; 
                 }
                 #initial-summary > .initial {
-                    width: 80%;
+                    width: 100%;
                 }
                 #initial-summary span{
                     margin-top: 10px;
@@ -708,6 +708,10 @@
             let isDragging = false;       // Indicates if the movable element is being dragged
             let spotChanged = false;      // Indicates if the movable element's position has changed from the last placement
             let initialMovement = false;  // Indicates if the movable element's position has changed from the staring position
+             let canvasLocked = false;    // Indicates if the canvas is locked (Moveable element is no longer moveable)
+             let ellipsesInterval = null; // Stores the interval ID
+
+            let zoneCount = 0;            // Total number of zones           
             let sampleCounter = 0;        // Counter for the number of samples taken
             let locationCounter = 0;      // Counter for the number of locations sampled
             let totalClicks_ = 0;
@@ -715,16 +719,12 @@
             const zoneSamples = {};       // Stores sample data for each zone
             const zonePopulations = {};   // Stores population data for each zone
             const solverPositions = {};   // Object to store the canvas state for each tab
-            let zoneCount = 0;            // Total number of zones
 
             // Variables for canvas dimensions and offsets
             let leftOffset, topOffset, canvasDisplayWidth, canvasDisplayHeight;
 
             // Stores text representations of the canvas for each location
             const canvasRepresentations = {};
-
-            // Indicates if the canvas is locked (Moveable element is no longer moveable)
-            let canvasLocked = false;
 
             /*** Utility Functions ***/
 
@@ -927,7 +927,7 @@
                 return Math.hypot(deltaX, deltaY); // Returns Euclidean distance
             };
 
-                        /*
+            /*
              * DESCRIPTION:
              * Starts the "Testing Changes" animation by displaying a message and cycling ellipses (`.`, `..`, `...`).
              * Hides the tab container during this phase.
@@ -940,59 +940,63 @@
              * Returns the interval ID for the ellipses animation, which can be used to stop it later.
              */
              function startTestingStatus(duration, type) {
-
-
+                // Clear any existing interval before starting a new one
+                if (ellipsesInterval !== null) {
+                    clearInterval(ellipsesInterval);
+                }
+            
                 // Hides the tab container
                 const tabContainer = document.getElementById('tab-container');
                 tabContainer.style.visibility = 'hidden';
-
+            
                 const testingStatus = document.getElementById('testing-status');
                 testingStatus.style.visibility = 'visible';
                 testingStatus.textContent = ''; // Clear previous text
-
+            
                 let ellipses = '';
                 let message = '';
-
+            
                 // Determine the message based on the type
                 if (type === 'sample') {
                     message = 'Testing Changes for one day';
                 } else if (type === 'final') {
                     message = 'Gathering results for the month';
                 }
-
+            
                 // Animate the ellipses
-                const ellipsesInterval = setInterval(() => {
+                ellipsesInterval = setInterval(() => {
                     ellipses = ellipses.length < 3 ? ellipses + '.' : ''; // Cycle through `.`, `..`, `...`
                     testingStatus.textContent = `${message}${ellipses}`;
                 }, 400); // Adjusts animation speed (change as needed)
-
+            
                 // Automatically stop the animation after the duration
                 setTimeout(() => {
-                    clearInterval(ellipsesInterval); // Stop the ellipses animation
+                    stopTestingStatus();
                 }, duration);
-
-                return ellipsesInterval;
             }
-
+            
             /*
-            * DESCRIPTION:
-            * Stops the "Testing Changes" animation by hiding the message and stopping the ellipses animation.
-            * Also ensures the most recent tab is activated after the status disappears.
-            *
-            * INPUT:
-            * ellipsesInterval - The interval ID returned by `startTestingStatus`, used to stop the animation.
-            * latestTabId - The ID of the most recent tab created.
-            *
-            * OUTPUT:
-            * None. Clears the animation, hides the text, and activates the latest tab.
-            */
-            function stopTestingStatus(ellipsesInterval, latestTabId ) {
-                clearInterval(ellipsesInterval); // Stop the ellipses animation
-
+             * DESCRIPTION:
+             * Stops the "Testing Changes" animation by hiding the message and stopping the ellipses animation.
+             *
+             * INPUT:
+             * NONE
+             *
+             * OUTPUT:
+             * None. Clears the animation, hides the text, and activates the latest tab.
+             */
+            function stopTestingStatus() {
+                // Stop the ellipses animation
+                if (ellipsesInterval !== null) {
+                    clearInterval(ellipsesInterval);
+                    ellipsesInterval = null; // Reset the interval ID
+                }
+            
+                // Hides the testingStatus text
                 const testingStatus = document.getElementById('testing-status');
                 testingStatus.style.visibility = 'hidden'; // Hide the text
-
-                // Show the tab container
+            
+                // Shows the tab container
                 const tabContainer = document.getElementById('tab-container');
                 tabContainer.style.visibility = 'visible';
             }
@@ -1782,9 +1786,6 @@
                         document.getElementById(`tab-${finalTabLabel}`).textContent = finalTabLabel;
                     }
                     createPopulationSummary(finalContentId, zoneIndex);
-
-                    // Activates the Final tab after testing status is hidden
-                    stopTestingStatus(`tab-${locationCounter}`)
                 }
             });
 
