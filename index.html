@@ -21,11 +21,6 @@
                 background-color: #333;
                 color: #fff;
             }
-
-            /* Prevent body scrolling when rotate prompt is shown */
-            body.no-scroll {
-                overflow: hidden;
-            }
             span.line {
                 display: inline-block;
             }
@@ -377,6 +372,10 @@
             #move-popup{ z-index: 125;}
             #scroll-popup{ z-index : 150;}
             @media only screen and (hover: none) and ((max-width: 500px) or (max-height: 500px)){
+                /* Prevent body scrolling when rotate prompt is shown */
+                body.no-scroll {
+                    overflow: hidden;
+                }
                 #rotate-prompt {
                     display: initial;
                 }
