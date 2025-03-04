@@ -351,7 +351,7 @@
         if (type === 'sample') {
             message = 'Testing Changes';
         } else if (type === 'final') {
-            message = 'Gathering results for the month';
+            message = 'Gathering Monthly Data';
         }
 
         // Animate the ellipses
