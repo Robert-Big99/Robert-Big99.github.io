@@ -148,7 +148,7 @@
 
         /* Tabs and Content */
         .tab-container {
-            visibility: hidden;
+            visibility: visible;
             overflow-y: auto;
             margin: 0 0 20px 0;
             background-color: #444;
@@ -177,7 +177,6 @@
         .tab-content.active {
             display: block;
         }
-
         tbody :nth-child(1){
             text-align: start;
         }
@@ -395,7 +394,7 @@
         #scroll-popup{ z-index : 150;}
 
         /* Media Queries */
-        @media only screen and (hover: none) and ((max-width: 500px) or (max-height: 500px)){
+        @media only screen and (hover: none) and (max-width: 500px) or (max-height: 500px){
             body.no-scroll {
                 height: 100%;
                 width: 100%;
