@@ -31,7 +31,7 @@
     'use strict';
     /*** Global Constants and Variables ***/
 
-        // Controls the visibility of the Hidden elements
+    // Controls the visibility of the Hidden elements
     let showHiddenElements = false;
 
     // Canvas Images
@@ -84,7 +84,8 @@
     let spotChanged = false;      // Indicates if the movable element's position has changed from the last placement
     let initialMovement = false;  // Indicates if the movable element's position has changed from the starting position
     let canvasLocked = false;     // Indicates if the canvas is locked (movable element is no longer movable)
-    let ellipsesInterval = null;  // Stores the interval ID
+    let ellipsesInterval = null;     // Stores the interval ID
+    let finalTest = false;       // Indicates if the current location test is the final
 
     let zoneCount = 0;            // Total number of zones
     let sampleCounter = 0;        // Counter for the number of samples taken for each location
@@ -423,10 +424,10 @@
             { views: 30000, clicks: 1 }  // Furthest from the hidden element(s)
         ];
 
-        const popVar = 5000; // The variability of the population size (samplesSize = sampleSize +- sampleVar / 2)
+        const popVar = 5000; // The variability of the population size (popSize = popSize +- sampleVar / 2)
         const sampleNum = 10;   // Number of samples per zone
-        const sampleSize = 200;  // Sample size
-        const sampleVar = 50;  // The variability of the sample size (samplesSize = sampleSize +- sampleVar / 2)
+        const sampleSize = 50;  // Sample size
+        const sampleVar = 10;  // The variability of the sample size (samplesSize = sampleSize +- sampleVar / 2)
         zoneCount = zoneData.length; // The total number of zones
         zoneData.forEach((zone, index) => {
             // Creates an array representing the population with clicks (1) and views without clicks (0)
@@ -750,6 +751,33 @@
         // Append the summary to the contentId element
         document.getElementById(ContentId).appendChild(summary);
 
+        // UPDATE | REFACTOR
+        resultComparison(summary);
+        lockCanvas(8000);                       // Locks the canvas
+        startTestingStatus(8000, "sample");     // Triggers the glow effect
+        updateClockSpeed(2, 8000);              // Initiates clock spin
+        triggerGlowEffect(8000, sampleClicks);  // Displays the testing status
+
+        // Creates the data table for the sample
+        createSampleTable(ContentId, sampleCounter, randomSample);
+
+        // Capture the canvas layout in text format at the time of the button press
+        canvasRepresentations[ContentId] = generateTextCanvasRepresentation();
+    }
+
+    /*
+    * DESCRIPTION:
+    * Displays the two most recent data summaries or the original and final locations
+    * if finalTest is true
+    *
+    * INPUT:
+    * ContentId - The ID of the content where the summary will be added (created from locationCounter)
+    *
+    * OUTPUT:
+    * Adds a summary element to the content, locks the canvas, starts the testing
+    * status animation, and captures the canvas representation
+    */
+    function resultComparison(summary) {
         // Manage the test-result div to show only the last two samples
         const testResultElement = document.getElementById("test-result");
         const summaryClone = summary.cloneNode(true);
@@ -780,19 +808,7 @@
             testResultElement.insertBefore(previousLabel, summaries[1]);
         }
 
-        // UPDATE | REFACTOR
-        lockCanvas(3000);                       // Locks the canvas
-        startTestingStatus(3000, "sample");     // Triggers the glow effect
-        updateClockSpeed(2, 3000);              // Initiates clock spin
-        triggerGlowEffect(3000, sampleClicks);  // Displays the testing status
-
-        // Creates the data table for the sample
-        createSampleTable(ContentId, sampleCounter, randomSample);
-
-        // Capture the canvas layout in text format at the time of the button press
-        canvasRepresentations[ContentId] = generateTextCanvasRepresentation();
     }
-
 
     /*
     * DESCRIPTION:
@@ -1182,12 +1198,17 @@
     * Attaches event listeners
     */
     function initializeEventListeners() {
+
         const testButton = document.getElementById('test-button');
         const postButton = document.getElementById('post-button');
         const copyButton = document.getElementById('copy-button');
         const resetButton = document.getElementById('reset-button');
         const closeButton = document.getElementById("popup-close-button");
-        const popup = document.getElementById("info-popup");
+
+        const initialPopup = document.getElementById("info-popup");
+        const movePopup = document.getElementById("move-popup");
+        const limitPopup = document.getElementById("limit-popup");
+        const scrollPopup = document.getElementById("scroll-popup");
         const dontShowAgainCheckbox = document.getElementById("dont-show-again-checkbox");
 
 
@@ -1206,7 +1227,7 @@
 
             // Checks localStorage to see if the popup should be displayed
             if (localStorage.getItem("hidePopup") !== "true") {
-                popup.style.display = "flex";
+                initialPopup.style.display = "flex";
             }
 
             // Closes the popup when the button is clicked
@@ -1215,7 +1236,7 @@
                 if (dontShowAgainCheckbox.checked) {
                     localStorage.setItem("hidePopup", "true");
                 }
-                popup.style.display = "none";
+                initalPopup.style.display = "none";
             });
         });
 
@@ -1239,22 +1260,25 @@
         // Counts the current number of samples / pilot runs made
         let pilotRuns = 0;
 
-        document.getElementById('test-button').addEventListener('click', () => {
-
+        testButton.addEventListener('click', () => {
+            // If the user clcks the test button but has not moved the moveable element since loading,
+            // show the movement popup
             if (!initialMovement){
-                const movePopup = document.getElementById('move-popup');
                 movePopup.classList.add('show');
 
                 // Automatically hide the popup after 5 seconds
                 setTimeout(() => {
                     movePopup.classList.remove('show');
                 }, 5000);
-            } else {
-
+            }
+            // Else create sample and add it to the tab conttainer
+            else {
                 const contentId = `content-${locationCounter}`;
                 if (!document.getElementById(contentId)) {
                     addTab(locationCounter);
                 }
+                // If the user clicks the test button and has moved the element since last pilot run,
+                // increment location counter so the data is appended to a new tab.
                 createSampleSummary(contentId);
                 if (spotChanged) {
                     locationCounter++;
@@ -1263,7 +1287,6 @@
                 // Check if the user has already scrolled down
                 if ((initialMovement && !isScrollPopupShown) &&
                     (document.body.scrollHeight > document.documentElement.clientHeight && window.scrollY === 0)) {
-                    const scrollPopup = document.getElementById('scroll-popup');
 
                     // Show the popup with the slide-up animation
                     scrollPopup.classList.add('show');
@@ -1279,6 +1302,7 @@
                 pilotRuns++; // Increments the pilot runs
                 // If the pilot run count exceeds 5, disable buttons and prompt
                 if (pilotRuns >= 5 ) {
+                    finalTest = true;
                     lockCanvas(0);
                     const limitPopup = document.getElementById('limit-popup');
                     limitPopup.classList.add('show');
@@ -1286,18 +1310,11 @@
                     setTimeout(() => {
                         limitPopup.classList.remove('show');
                     }, 5000);
-
+                    // Swaps the test button out with the post changes button
                     testButton.style.display = 'none';
                     postButton.style.display = 'block';
-
                 }
-
-                copyButton.style.display = 'block';
-
-                resetButton.style.display = 'block';
             }
-
-
             const contentId = `content-${locationCounter + 1}`;
 
             // Calls createSampleSummary function
@@ -1317,7 +1334,7 @@
         });
 
         // Event listener for the Publish (Publish) button
-        document.getElementById('post-button').addEventListener('click', () => {
+        postButton.addEventListener('click', () => {
             const { samples: selectedZoneSamples, zoneIndex } = selectZoneByDistance();
 
             if (!initialMovement) {
@@ -1340,30 +1357,13 @@
         });
 
         // Event listener for the Copy button
-        // document.getElementById('copy-button').addEventListener('click', copyAllDataToClipboard);
+        // copyButton.addEventListener('click', copyAllDataToClipboard);
 
         // Event listener for the Reset button
-        //document.getElementById('reset-button').addEventListener('click', () => { location.reload(); });
+        // resetButton.addEventListener('click', () => { location.reload(); });
 
         function telemetryDataCollector(){
-            document.getElementById('post-button').addEventListener('click', () => {
 
-            });
-            document.getElementById('test-button').addEventListener('click', () => {
-
-            });
-            document.getElementById('copy-button').addEventListener('click', () => {
-
-            });
-            document.getElementById('reset-button').addEventListener('click', () => {
-
-            });
-            canvas.addEventListener('mousedown', () => {
-
-            });
-            canvas.addEventListener('touchstart', () => {
-
-            });
         }
 
 

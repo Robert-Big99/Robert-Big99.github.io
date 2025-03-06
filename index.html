@@ -60,12 +60,20 @@
         <p>Try moving the Equation Solver icon first!</p>
     </div>
 
+    <div id="testing-popup" class="suggestion-popup" aria-live="polite">
+        <p>
+            The new location is being tested now.<BR>
+            Wait for the testing indicator to finish<BR>
+            and check out the results below!
+        </p>
+    </div>
     <div id="limit-popup" class="suggestion-popup" aria-live="polite">
         <p>
             You are limited to 5 samples!<BR>
             Post your changes or reload the page.
         </p>
     </div>
+
 
     <!-- Initial popup -->
     <div id="info-popup" class="initial-Popup" role="dialog" aria-modal="true" aria-labelledby="popup-title">
@@ -127,8 +135,6 @@
 
     <!-- Output Interface -->
     <section id="output-interface" class="output-interface" aria-label="Results and Data">
-        <!-- Outputs on load-->
-        <div id="initial-summary"></div>
         <!-- Outputs on interaction -->
         <div id="tab-container" class="tab-container" role="tablist">
             <div class="tabs" id="tabs"></div>
