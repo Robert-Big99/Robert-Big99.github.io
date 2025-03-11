@@ -34,6 +34,9 @@
     // Controls the visibility of the Hidden elements
     let showHiddenElements = false;
 
+    // Counts the current number of samples / pilot runs made
+    let pilotRuns = 0;
+
     // Canvas Images
     const backgroundImage = 'images/Algebra_Website.png';
     const movableElementImage = 'images/Equation_Solver.png';
@@ -1151,6 +1154,33 @@
 
         ctx.restore();
     }
+    /*
+    * DESCRIPTION:
+    * Keeps count of the current number of pilots. This logic was separated
+    * to help with refactization down the line.
+    *
+    * INPUT:
+    * pilotRuns - A global int value starting at 0
+    *
+    * OUTPUT:
+    * Locks the canvas and both the post and test buttons.
+    */
+    function pilotLimiter() {
+        // If the pilot run count exceeds 5, disable buttons and prompt
+        if (pilotRuns = 5) {
+            finalTest = true;
+            lockCanvas(0);
+            limitPopup.classList.add('show');
+
+            setTimeout(() => {
+                limitPopup.classList.remove('show');
+            }, 5000);
+            // Swaps the test button out with the post changes button
+            testButton.style.display = 'none';
+            postButton.style.display = 'block';
+        }
+    }
+
 
     /*
     * DESCRIPTION:
@@ -1164,8 +1194,10 @@
     * Sets canvasLocked to true and optionally unlocks it after the specified time.
     */
     function lockCanvas(duration) {
+        // Locks the canvas
         canvasLocked = true;
         isDragging = false;
+
 
         // Disables buttons during the lock period
         document.getElementById('post-button').disabled = true;
@@ -1181,6 +1213,7 @@
                 document.getElementById('post-button').disabled = false;
                 document.getElementById('test-button').disabled = false;
             }, duration);
+
         }
     }
 
@@ -1205,17 +1238,15 @@
         const resetButton = document.getElementById('reset-button');
         const closeButton = document.getElementById("popup-close-button");
 
-        const initialPopup = document.getElementById("info-popup");
+        const infoPopup = document.getElementById("info-popup");
         const movePopup = document.getElementById("move-popup");
         const limitPopup = document.getElementById("limit-popup");
         const scrollPopup = document.getElementById("scroll-popup");
         const dontShowAgainCheckbox = document.getElementById("dont-show-again-checkbox");
-
+        const loader = document.querySelector(".loader");
 
         // Event listener for the loading screen
         document.addEventListener("DOMContentLoaded", () => {
-            const loader = document.querySelector(".loader");
-
             // Adds the 'loader-hidden' class to initiate the fade-out transition
             loader.classList.add("loader-hidden");
 
@@ -1223,20 +1254,19 @@
             loader.addEventListener("transitionend", () => {
                 loader.remove();
             });
-
+            const infoPopup = document.getElementById("info-popup");
 
             // Checks localStorage to see if the popup should be displayed
             if (localStorage.getItem("hidePopup") !== "true") {
-                initialPopup.style.display = "flex";
+                infoPopup.style.display = "flex";
             }
-
             // Closes the popup when the button is clicked
             closeButton.addEventListener("click", () => {
                 // If the "Don't show again" checkbox is checked, store the preference in localStorage
                 if (dontShowAgainCheckbox.checked) {
                     localStorage.setItem("hidePopup", "true");
                 }
-                initalPopup.style.display = "none";
+                infoPopup.style.display = "none";
             });
         });
 
@@ -1256,9 +1286,6 @@
 
         // Event listener for the test button
         let isScrollPopupShown = false;
-
-        // Counts the current number of samples / pilot runs made
-        let pilotRuns = 0;
 
         testButton.addEventListener('click', () => {
             // If the user clcks the test button but has not moved the moveable element since loading,
@@ -1300,20 +1327,7 @@
                 }
 
                 pilotRuns++; // Increments the pilot runs
-                // If the pilot run count exceeds 5, disable buttons and prompt
-                if (pilotRuns >= 5 ) {
-                    finalTest = true;
-                    lockCanvas(0);
-                    const limitPopup = document.getElementById('limit-popup');
-                    limitPopup.classList.add('show');
 
-                    setTimeout(() => {
-                        limitPopup.classList.remove('show');
-                    }, 5000);
-                    // Swaps the test button out with the post changes button
-                    testButton.style.display = 'none';
-                    postButton.style.display = 'block';
-                }
             }
             const contentId = `content-${locationCounter + 1}`;
 
@@ -1355,6 +1369,109 @@
                 createPopulationSummary(finalContentId, zoneIndex);
             }
         });
+
+
+        /*
+        * DESCRIPTION:
+        * Simulates a glowing effect on the movable element directly on the canvas by redrawing with a glowing
+        * outline.
+        *
+        * INPUT:
+        * duration - The total duration for the glow effect (in milliseconds).
+        * clicks - The total number of clicks or glow flashes to simulate.
+        *
+        * OUTPUT:
+        * Visually simulates multiple clicks with a glowing effect on the movable element and updates the displayed text.
+        */
+        function triggerGlowEffect(duration, clicks) {
+            const intervals = [];
+
+            // Randomly distribute glow events across the duration
+            for (let i = 0; i < clicks; i++) {
+                const randomInterval = Math.random() * duration;
+                intervals.push(randomInterval);
+            }
+
+            // Sort intervals to ensure sequential updates
+            intervals.sort((a, b) => a - b);
+
+            intervals.forEach((interval) => {
+                setTimeout(() => {
+                    // Draw glow effect
+                    drawMovableElementWithGlow();
+
+                    // Remove the glow effect after a short delay
+                    setTimeout(() => {
+                        drawElements();
+                    }, 10);
+                }, interval);
+            });
+        }
+
+        /*
+        * DESCRIPTION:
+        * Draws the movable element with a glowing outline.
+        * This effect is simulated directly on the canvas.
+        */
+        function drawMovableElementWithGlow() {
+            ctx.save();
+            ctx.scale(canvas.width / MODEL_WIDTH, canvas.height / MODEL_HEIGHT);
+
+            // Get the movable element's properties
+            const { x, y, width, height } = movableElement;
+
+            // Calculate the element's position and size in model units
+            const elementX = x * MODEL_WIDTH - (width * MODEL_WIDTH) / 2;
+            const elementY = y * MODEL_HEIGHT - (height * MODEL_HEIGHT) / 2;
+            const elementWidth = width * MODEL_WIDTH;
+            const elementHeight = height * MODEL_HEIGHT;
+
+            // Draw the glowing outline
+            ctx.shadowBlur = 5;         // Add shadow for the glow
+            ctx.shadowColor = "blue";   // Blue glow color
+            ctx.strokeStyle = "blue";   // Outline color
+            ctx.lineWidth = 1;          // Outline thickness
+            ctx.strokeRect(elementX, elementY, elementWidth, elementHeight); // Draw only the outline
+
+            ctx.restore();
+        }
+
+        /*
+        * DESCRIPTION:
+        * Locks the canvas to prevent further movement of the movable element.
+        * Disables dragging and interaction with the canvas. Unlocks automatically if a time parameter is provided.
+        *
+        * INPUT:
+        * duration - The amount of time (in milliseconds) to lock the canvas. If not provided, the canvas remains locked indefinitely.
+        *
+        * OUTPUT:
+        * Sets canvasLocked to true and optionally unlocks it after the specified time.
+        */
+        function lockCanvas(duration) {
+            // Locks the canvas
+            canvasLocked = true;
+            isDragging = false;
+
+
+            // Disables buttons during the lock period
+            document.getElementById('post-button').disabled = true;
+            document.getElementById('test-button').disabled = true;
+
+            // If a time parameter is provided, set a timeout to unlock the canvas
+            if (duration > 0) {
+                setTimeout(() => {
+                    stopTestingStatus(); // Removes the testing status text if running.
+                    canvasLocked = false;
+
+                    // Reenables the 'Post Changes' and 'Show Sample' buttons
+                    document.getElementById('post-button').disabled = false;
+                    document.getElementById('test-button').disabled = false;
+                }, duration);
+
+            }
+
+            pilotLimiter()
+        }
 
         // Event listener for the Copy button
         // copyButton.addEventListener('click', copyAllDataToClipboard);
