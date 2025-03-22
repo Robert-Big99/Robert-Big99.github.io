@@ -1,7 +1,7 @@
 /**
  * FILE: main.js
  * VERSION: 1.0.1
- * DATE: 12/05/2024
+ * DATE: 03/21/2025
  * AUTHOR: Robert Biggart
  *
  * DESCRIPTION:
@@ -13,18 +13,7 @@
  * to review and infer if the changes made are effective.
  *
  * VERSION NOTES:
- * Version 1.0.1 is a hot patch containing several new QoL features as per the request of the client. Such as a loading
- * icon for when the page loads, a first time popup to give the user info on the program, a popup to tell the user
- * scroll down to the sample results, animations for sample and population events, and a testing status box containing
- * a clock.
- *
- * New functions added - startTestingStatus, stopTestingStatus, createInitialSummary, triggerGlowEffect and
- * drawMovableElementWithGlow. Along with several changes to functions like lockCanvas, createSampleSummary,
- * createPopulationSummary, createSampleTable, createPopulationTable and updateClockSpeed.
- *
- * DEVELOPER NOTE:
- * Much of this may needs to be refactored in a later iteration. As many changes were patched in last minute to meet
- * client demands. Please report any poorly implemented code for reassessment.
+ * Version 1.1.0 is a major patch containing -
  **/
 
 (function () {
@@ -104,6 +93,23 @@
 
     // Stores text representations of the canvas for each location
     const canvasRepresentations = {};
+
+    const testButton = document.getElementById('test-button');
+    const postButton = document.getElementById('post-button');
+    const copyButton = document.getElementById('copy-button');
+    const resetButton = document.getElementById('reset-button');
+    const closeButton = document.getElementById("popup-close-button");
+
+
+    const initialPopup = document.getElementById("initial-popup");
+    const testingPopup = document.getElementById('testing-popup');
+    const movePopup = document.getElementById("move-popup");
+    const limitPopup = document.getElementById("limit-popup");
+    const scrollPopup = document.getElementById("scroll-popup");
+
+    const dontShowAgainCheckbox = document.getElementById("dont-show-again-checkbox");
+    const loader = document.querySelector(".loader");
+
 
     /*** Utility Functions ***/
 
@@ -344,7 +350,12 @@
         const tabContainer = document.getElementById('tab-container');
         tabContainer.style.visibility = 'hidden';
 
-        const testingStatus = document.getElementById('testing-status');
+        // Hides the result comparisons
+        const testResult = document.getElementById('test-result');
+        testResult.style.visibility = 'hidden';
+
+        // Shows the testingStatus text
+        const testingStatus = document.getElementById('testing-status-text');
         testingStatus.style.visibility = 'visible';
         testingStatus.textContent = ''; // Clear previous text
 
@@ -353,9 +364,9 @@
 
         // Determine the message based on the type
         if (type === 'sample') {
-            message = 'Testing Changes';
+            message = 'Testing location for 1 hour';
         } else if (type === 'final') {
-            message = 'Gathering Monthly Data';
+            message = 'Gathering monthly results for the new location';
         }
 
         // Animate the ellipses
@@ -388,8 +399,13 @@
         }
 
         // Hides the testingStatus text
-        const testingStatus = document.getElementById('testing-status');
+        const testingStatus = document.getElementById('testing-status-text');
         testingStatus.style.visibility = 'hidden'; // Hide the text
+
+        // Shows the result comparisions
+        const testResult = document.getElementById('test-result');
+        testResult.style.visibility = 'visible';
+
 
         // Shows the tab container
         const tabContainer = document.getElementById('tab-container');
@@ -768,50 +784,6 @@
         canvasRepresentations[ContentId] = generateTextCanvasRepresentation();
     }
 
-    /*
-    * DESCRIPTION:
-    * Displays the two most recent data summaries or the original and final locations
-    * if finalTest is true
-    *
-    * INPUT:
-    * ContentId - The ID of the content where the summary will be added (created from locationCounter)
-    *
-    * OUTPUT:
-    * Adds a summary element to the content, locks the canvas, starts the testing
-    * status animation, and captures the canvas representation
-    */
-    function resultComparison(summary) {
-        // Manage the test-result div to show only the last two samples
-        const testResultElement = document.getElementById("test-result");
-        const summaryClone = summary.cloneNode(true);
-
-        // Remove all existing labels before updating
-        testResultElement.querySelectorAll('.label').forEach(label => label.remove());
-
-        // Remove old summaries if there are already two present
-        while (testResultElement.children.length >= 2) {
-            testResultElement.removeChild(testResultElement.lastChild);
-        }
-
-        // Insert new summary at the top
-        testResultElement.insertBefore(summaryClone, testResultElement.firstChild);
-
-        // Add "Current" label above the newest summary
-        const currentLabel = document.createElement('div');
-        currentLabel.className = 'label';
-        currentLabel.textContent = 'Current';
-        testResultElement.insertBefore(currentLabel, summaryClone);
-
-        // Add "Previous" label if there's an older summary
-        const summaries = testResultElement.querySelectorAll('.sample-summary');
-        if (summaries.length > 1) {
-            const previousLabel = document.createElement('div');
-            previousLabel.className = 'label';
-            previousLabel.textContent = 'Previous';
-            testResultElement.insertBefore(previousLabel, summaries[1]);
-        }
-
-    }
 
     /*
     * DESCRIPTION:
@@ -878,6 +850,8 @@
         updateClockSpeed(60, 15000);             // Initiates clock spin
         triggerGlowEffect(15000, totalClicks);   // Displays the testing status
 
+        resultComparison(summary);
+
         // Creates the data table for the zone
         createPopulationTable(contentId, zoneIndex);
 
@@ -918,6 +892,76 @@
 
         table.innerHTML = tableHTML;
         spreadsheet.appendChild(table);
+    }
+
+    /*
+* DESCRIPTION:
+* Displays the two most recent data summaries or the original and final locations
+* if finalTest is true
+*
+* INPUT:
+* ContentId - The ID of the content where the summary will be added (created from locationCounter)
+*
+* OUTPUT:
+* Adds a summary element to the content, locks the canvas, starts the testing
+* status animation, and captures the canvas representation
+*/
+    function resultComparison(summary) {
+        const testResultElement = document.getElementById("test-result");
+
+        // Remove all existing labels before updating
+        testResultElement.querySelectorAll('.label').forEach(label => label.remove());
+
+        const currentLabel = document.createElement('div');
+        if (finalTest === true) {
+            // Clear existing summaries
+            testResultElement.replaceChildren();
+
+            // Add "Original Location" label and first summary
+            currentLabel.className = 'label';
+            currentLabel.textContent = 'Original Location';
+            testResultElement.appendChild(currentLabel);
+
+            const initialLocationSummary = document.getElementsByClassName('summary')[0];
+            const initialLocationSummaryClone = initialLocationSummary.cloneNode(true);
+            testResultElement.appendChild(initialLocationSummaryClone);
+
+            // Add "New Location" label and last summary
+            const newLabel = document.createElement('div');
+            newLabel.className = 'label';
+            newLabel.textContent = 'New Location';
+            testResultElement.appendChild(previousLabel);
+
+            const finalLocationSummary = document.getElementsByClassName('summary')[document.getElementsByClassName('summary').length - 1];
+            const finalLocationSummaryClone = finalLocationSummary.cloneNode(true);
+            testResultElement.appendChild(finalLocationSummaryClone);
+        } else {
+            // Original behavior: Manage the test-result div to show only the last two samples
+            const summaryClone = summary.cloneNode(true);
+
+            // Remove old summaries if there are already two present
+            while (testResultElement.children.length >= 2) {
+                testResultElement.removeChild(testResultElement.lastChild);
+            }
+
+            // Insert new summary at the top
+            testResultElement.insertBefore(summaryClone, testResultElement.firstChild);
+
+            // Add "Current" label above the newest summary
+            const currentLabel = document.createElement('div');
+            currentLabel.className = 'label';
+            currentLabel.textContent = 'Current';
+            testResultElement.insertBefore(currentLabel, summaryClone);
+
+            // Add "Previous" label if there's an older summary
+            const summaries = testResultElement.querySelectorAll('.sample-summary');
+            if (summaries.length > 1) {
+                const previousLabel = document.createElement('div');
+                previousLabel.className = 'label';
+                previousLabel.textContent = 'Previous';
+                testResultElement.insertBefore(previousLabel, summaries[1]);
+            }
+        }
     }
 
     /*
@@ -1165,10 +1209,9 @@
     * OUTPUT:
     * Locks the canvas and both the post and test buttons.
     */
-    function pilotLimiter() {
+    function pilotLimiter(limit) {
         // If the pilot run count exceeds 5, disable buttons and prompt
-        if (pilotRuns = 5) {
-            finalTest = true;
+        if (pilotRuns === limit) {
             lockCanvas(0);
             limitPopup.classList.add('show');
 
@@ -1231,30 +1274,17 @@
     * Attaches event listeners
     */
     function initializeEventListeners() {
-
-        const testButton = document.getElementById('test-button');
-        const postButton = document.getElementById('post-button');
-        const copyButton = document.getElementById('copy-button');
-        const resetButton = document.getElementById('reset-button');
-        const closeButton = document.getElementById("popup-close-button");
-
-        const infoPopup = document.getElementById("info-popup");
-        const movePopup = document.getElementById("move-popup");
-        const limitPopup = document.getElementById("limit-popup");
-        const scrollPopup = document.getElementById("scroll-popup");
-        const dontShowAgainCheckbox = document.getElementById("dont-show-again-checkbox");
-        const loader = document.querySelector(".loader");
-
         // Event listener for the loading screen
         document.addEventListener("DOMContentLoaded", () => {
             // Adds the 'loader-hidden' class to initiate the fade-out transition
             loader.classList.add("loader-hidden");
 
+
             // Waits for the transition to end before removing the loader from the DOM
             loader.addEventListener("transitionend", () => {
                 loader.remove();
             });
-            const infoPopup = document.getElementById("info-popup");
+            const infoPopup = document.getElementById("initial-popup");
 
             // Checks localStorage to see if the popup should be displayed
             if (localStorage.getItem("hidePopup") !== "true") {
@@ -1288,7 +1318,7 @@
         let isScrollPopupShown = false;
 
         testButton.addEventListener('click', () => {
-            // If the user clcks the test button but has not moved the moveable element since loading,
+            // If the user clicks the test button but has not moved the moveable element since loading,
             // show the movement popup
             if (!initialMovement){
                 movePopup.classList.add('show');
@@ -1328,11 +1358,22 @@
 
                 pilotRuns++; // Increments the pilot runs
 
+                pilotLimiter(5);
+
             }
             const contentId = `content-${locationCounter + 1}`;
 
             // Calls createSampleSummary function
             createSampleSummary(contentId);
+
+            // Show the popup with the slide-up animation
+            testingPopup.classList.add('show');
+
+            // Automatically hide the popup after 5 seconds
+            setTimeout(() => {
+                testingPopup.classList.remove('show');
+            }, 5000);
+
 
             if (spotChanged) {
                 locationCounter++;
@@ -1369,109 +1410,6 @@
                 createPopulationSummary(finalContentId, zoneIndex);
             }
         });
-
-
-        /*
-        * DESCRIPTION:
-        * Simulates a glowing effect on the movable element directly on the canvas by redrawing with a glowing
-        * outline.
-        *
-        * INPUT:
-        * duration - The total duration for the glow effect (in milliseconds).
-        * clicks - The total number of clicks or glow flashes to simulate.
-        *
-        * OUTPUT:
-        * Visually simulates multiple clicks with a glowing effect on the movable element and updates the displayed text.
-        */
-        function triggerGlowEffect(duration, clicks) {
-            const intervals = [];
-
-            // Randomly distribute glow events across the duration
-            for (let i = 0; i < clicks; i++) {
-                const randomInterval = Math.random() * duration;
-                intervals.push(randomInterval);
-            }
-
-            // Sort intervals to ensure sequential updates
-            intervals.sort((a, b) => a - b);
-
-            intervals.forEach((interval) => {
-                setTimeout(() => {
-                    // Draw glow effect
-                    drawMovableElementWithGlow();
-
-                    // Remove the glow effect after a short delay
-                    setTimeout(() => {
-                        drawElements();
-                    }, 10);
-                }, interval);
-            });
-        }
-
-        /*
-        * DESCRIPTION:
-        * Draws the movable element with a glowing outline.
-        * This effect is simulated directly on the canvas.
-        */
-        function drawMovableElementWithGlow() {
-            ctx.save();
-            ctx.scale(canvas.width / MODEL_WIDTH, canvas.height / MODEL_HEIGHT);
-
-            // Get the movable element's properties
-            const { x, y, width, height } = movableElement;
-
-            // Calculate the element's position and size in model units
-            const elementX = x * MODEL_WIDTH - (width * MODEL_WIDTH) / 2;
-            const elementY = y * MODEL_HEIGHT - (height * MODEL_HEIGHT) / 2;
-            const elementWidth = width * MODEL_WIDTH;
-            const elementHeight = height * MODEL_HEIGHT;
-
-            // Draw the glowing outline
-            ctx.shadowBlur = 5;         // Add shadow for the glow
-            ctx.shadowColor = "blue";   // Blue glow color
-            ctx.strokeStyle = "blue";   // Outline color
-            ctx.lineWidth = 1;          // Outline thickness
-            ctx.strokeRect(elementX, elementY, elementWidth, elementHeight); // Draw only the outline
-
-            ctx.restore();
-        }
-
-        /*
-        * DESCRIPTION:
-        * Locks the canvas to prevent further movement of the movable element.
-        * Disables dragging and interaction with the canvas. Unlocks automatically if a time parameter is provided.
-        *
-        * INPUT:
-        * duration - The amount of time (in milliseconds) to lock the canvas. If not provided, the canvas remains locked indefinitely.
-        *
-        * OUTPUT:
-        * Sets canvasLocked to true and optionally unlocks it after the specified time.
-        */
-        function lockCanvas(duration) {
-            // Locks the canvas
-            canvasLocked = true;
-            isDragging = false;
-
-
-            // Disables buttons during the lock period
-            document.getElementById('post-button').disabled = true;
-            document.getElementById('test-button').disabled = true;
-
-            // If a time parameter is provided, set a timeout to unlock the canvas
-            if (duration > 0) {
-                setTimeout(() => {
-                    stopTestingStatus(); // Removes the testing status text if running.
-                    canvasLocked = false;
-
-                    // Reenables the 'Post Changes' and 'Show Sample' buttons
-                    document.getElementById('post-button').disabled = false;
-                    document.getElementById('test-button').disabled = false;
-                }, duration);
-
-            }
-
-            pilotLimiter()
-        }
 
         // Event listener for the Copy button
         // copyButton.addEventListener('click', copyAllDataToClipboard);

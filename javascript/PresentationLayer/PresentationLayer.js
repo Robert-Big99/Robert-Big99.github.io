@@ -289,7 +289,7 @@ default class PresentationLayer
     const tabContainer = document.getElementById('tab-container');
     tabContainer.style.visibility = 'hidden';
 
-    const testingStatus = document.getElementById('testing-status');
+    const testingStatus = document.getElementById('testing-status-text');
     testingStatus.style.visibility = 'visible';
     testingStatus.textContent = ''; // Clear previous text
 
@@ -333,7 +333,7 @@ default class PresentationLayer
     }
 
     // Hides the testingStatus text
-    const testingStatus = document.getElementById('testing-status');
+    const testingStatus = document.getElementById('testing-status-text');
     testingStatus.style.visibility = 'hidden'; // Hide the text
 
     // Shows the tab container
@@ -577,7 +577,7 @@ default class PresentationLayer
             loader.remove();
         });
 
-        const popup = document.getElementById("info-popup");
+        const popup = document.getElementById("initial-popup");
         const closeButton = document.getElementById("popup-close-button");
         const dontShowAgainCheckbox = document.getElementById("dont-show-again-checkbox");
 

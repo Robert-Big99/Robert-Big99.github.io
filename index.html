@@ -69,14 +69,15 @@
     </div>
     <div id="limit-popup" class="suggestion-popup" aria-live="polite">
         <p>
-            You are limited to 5 samples!<BR>
-            Post your changes or reload the page.
+            You are out of time!<BR>
+            You need to pick from one of the <BR>
+            sample locations listed below<BR></BR>
         </p>
     </div>
 
 
     <!-- Initial popup -->
-    <div id="info-popup" class="initial-Popup" role="dialog" aria-modal="true" aria-labelledby="popup-title">
+    <div id="initial-popup" class="initial-Popup" role="dialog" aria-modal="true" aria-labelledby="popup-title">
         <div class="popup-content">
             <h2 id="popup-title">Welcome to Stats Teacher!</h2>
             <p>
@@ -118,7 +119,7 @@
 
 
     <!-- Testing Status Indicator -->
-    <div id="testing-popup" class="testing-popup">
+    <div id="testing-wrapper" class="testing-wrapper">
         <h2>Change Metrics</h2>
         <!-- Clock Container -->
         <div id="clock-container">
@@ -126,7 +127,7 @@
                 <div id="clock-hand"></div>
             </div>
         </div>
-        <div id="testing-status"></div>
+        <div id="testing-status-text"></div>
         <button id="test-button" title="Show sample data for the selected location">Pilot Run</button>
         <button id="post-button" title="Post changes and display the population data">Publish Changes</button>
         <div id="test-result"></div>
