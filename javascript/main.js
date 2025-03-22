@@ -20,7 +20,7 @@
     'use strict';
     /*** Global Constants and Variables ***/
 
-    // Controls the visibility of the Hidden elements
+        // Controls the visibility of the Hidden elements
     let showHiddenElements = false;
 
     // Counts the current number of samples / pilot runs made
@@ -94,6 +94,9 @@
     // Stores text representations of the canvas for each location
     const canvasRepresentations = {};
 
+    // Stores the first and last CTR rates for use in results comparison
+    let ctrComparison = [];
+
     const testButton = document.getElementById('test-button');
     const postButton = document.getElementById('post-button');
     const copyButton = document.getElementById('copy-button');
@@ -104,7 +107,8 @@
     const initialPopup = document.getElementById("initial-popup");
     const testingPopup = document.getElementById('testing-popup');
     const movePopup = document.getElementById("move-popup");
-    const limitPopup = document.getElementById("limit-popup");
+    const limitPopup = document.getElementById("limit-reached-popup");
+    const outcomePopup = document.getElementById("outcome-popup");
     const scrollPopup = document.getElementById("scroll-popup");
 
     const dontShowAgainCheckbox = document.getElementById("dont-show-again-checkbox");
@@ -366,7 +370,7 @@
         if (type === 'sample') {
             message = 'Testing location for 1 hour';
         } else if (type === 'final') {
-            message = 'Gathering monthly results for the new location';
+            message = 'Gathering data for the new location over one month';
         }
 
         // Animate the ellipses
@@ -639,6 +643,96 @@
 
     /*
     * DESCRIPTION:
+    * Displays the two most recent data summaries or the original and final locations
+    * if finalTest is true
+    *
+    * INPUT:
+    * ContentId - The ID of the content where the summary will be added (created from locationCounter)
+    *
+    * OUTPUT:
+    * Adds a summary element to the content, locks the canvas, starts the testing
+    * status animation, and captures the canvas representation
+    */
+
+    function resultComparison(summary) {
+        const testResultElement = document.getElementById("test-result");
+        const comparisonType = document.getElementById("comparison-type");
+
+        // Remove all existing labels before updating
+        testResultElement.querySelectorAll('.label').forEach(label => label.remove());
+
+        const currentLabel = document.createElement('div');
+        if (finalTest === true) {
+
+            // Clear existing summaries
+            testResultElement.replaceChildren();
+            comparisonType.innerHTML = 'Publication Comparisons';
+
+
+            // Add "New Location" label and last summary
+            const newLabel = document.createElement('div');
+            newLabel.className = 'label';
+            newLabel.textContent = 'New';
+            testResultElement.appendChild(newLabel);
+
+            const finalLocationSummary = document.getElementsByClassName('summary')[document.getElementsByClassName('summary').length - 1];
+            const finalLocationSummaryClone = finalLocationSummary.cloneNode(true);
+            testResultElement.appendChild(finalLocationSummaryClone);
+
+            // Add "Original Location" label and first summary
+            currentLabel.className = 'label';
+            currentLabel.textContent = 'Original';
+            testResultElement.appendChild(currentLabel);
+
+            const initialLocationSummary = document.getElementsByClassName('summary')[1];
+            const initialLocationSummaryClone = initialLocationSummary.cloneNode(true);
+            testResultElement.appendChild(initialLocationSummaryClone);
+
+            if (ctrComparison[0] < ctrComparison[1]){
+                outcomePopup.textContent = 'Great Job!';
+            } else{
+                outcomePopup.textContent = 'Close, but not quite!';
+            }
+
+
+            outcomePopup.classList.add('show');
+            setTimeout(() => {
+                outcomePopup.classList.remove('show');
+            }, 5000);
+
+        } else {
+
+            comparisonType.innerHTML = 'Pilot Comparisons';
+
+            // Original behavior: Manage the test-result div to show only the last two samples
+            const summaryClone = summary.cloneNode(true);
+
+            // Remove old summaries if there are already two present
+            while (testResultElement.children.length >= 2) {
+                testResultElement.removeChild(testResultElement.lastChild);
+            }
+
+            // Insert new summary at the top
+            testResultElement.insertBefore(summaryClone, testResultElement.firstChild);
+
+            // Add "Current" label above the newest summary
+            currentLabel.className = 'label';
+            currentLabel.textContent = 'Current';
+            testResultElement.insertBefore(currentLabel, summaryClone);
+
+            // Add "Previous" label if there's an older summary
+            const summaries = testResultElement.querySelectorAll('.sample-summary');
+            if (summaries.length > 1) {
+                const previousLabel = document.createElement('div');
+                previousLabel.className = 'label';
+                previousLabel.textContent = 'Previous';
+                testResultElement.insertBefore(previousLabel, summaries[1]);
+            }
+        }
+    }
+
+    /*
+    * DESCRIPTION:
     * Creates the initial population data to use in comparison with the new location choices after
     * the page finishes loading, and adds it to a new tab in the tab bar.
     *
@@ -655,9 +749,7 @@
         const populationSize = data.length;
         const ctr = ((totalClicks / populationSize) * 100).toFixed(2);
 
-        console.log(populationSize);
-        console.log(totalClicks);
-        console.log(ctr);
+        ctrComparison = ctrComparison.concat(ctr);
 
         // Creates the population summary element
         const summary = document.createElement('div');
@@ -671,20 +763,20 @@
                 </p>
             `;
         document.getElementById(contentId).appendChild(summary);
-/**
-// ######################################################################################################################
-        const data = zonePopulations[`zone${zoneIndex + 1}`];
-        data.splice(-(Math.random() * 100));
-        const initialSize = data.length;
-        const initialClicks = data.reduce((acc, val) => acc + val, 0);
-        const ctr = ((initialClicks / initialSize) * 100).toFixed(2);
+        /**
+         // ######################################################################################################################
+         const data = zonePopulations[`zone${zoneIndex + 1}`];
+         data.splice(-(Math.random() * 100));
+         const initialSize = data.length;
+         const initialClicks = data.reduce((acc, val) => acc + val, 0);
+         const ctr = ((initialClicks / initialSize) * 100).toFixed(2);
 
-        // Creates the population summary element
-        const initialSummary = document.createElement('div');
-        initialSummary.className = 'initial summary';
-        initialSummary.innerHTML = `<p><span class= "line">[Current Monthly Average]</span> <span class= "line">Number of Users: ${initialSize}</span> <span class= "line"> Number of clicks: ${initialClicks}  </span> <span class= "line"> Click-Through Rate: ${ctr}% </span></p>`;
-        document.getElementById('initial-summary').appendChild(initialSummary);
-// ######################################################################################################################## */
+         // Creates the population summary element
+         const initialSummary = document.createElement('div');
+         initialSummary.className = 'initial summary';
+         initialSummary.innerHTML = `<p><span class= "line">[Current Monthly Average]</span> <span class= "line">Number of Users: ${initialSize}</span> <span class= "line"> Number of clicks: ${initialClicks}  </span> <span class= "line"> Click-Through Rate: ${ctr}% </span></p>`;
+         document.getElementById('initial-summary').appendChild(initialSummary);
+         // ######################################################################################################################## */
 
         // Creates the data table for the zone
         createInitialTable(contentId, zoneIndex);
@@ -765,8 +857,6 @@
                 </p>
             `;
 
-        console.log(ContentId);
-
         // Append the summary to the contentId element
         document.getElementById(ContentId).appendChild(summary);
 
@@ -828,6 +918,8 @@
         const totalClicks = data.reduce((acc, val) => acc + val, 0);
         const totalCTR = ((totalClicks / totalPopulation) * 100).toFixed(2);
 
+        ctrComparison = ctrComparison.concat(totalCTR);
+        console.log(ctrComparison);
         // Creates the population summary element
         const summary = document.createElement('div');
         summary.className = 'summary population';
@@ -884,7 +976,7 @@
         for (let i = 0; i < data.length; i += chunkSize) {
             const chunk = data.slice(i, i + chunkSize);
             tableHTML +=
-                        `
+                `
                             <tr><th>User</th>${chunk.map((_, idx) => `<th>${i + idx + 1}</th>`).join('')}</tr>
                             <tr><td>Clicked</td>${chunk.map(v => `<td>${v}</td>`).join('')}</tr>
                         `;
@@ -894,75 +986,6 @@
         spreadsheet.appendChild(table);
     }
 
-    /*
-* DESCRIPTION:
-* Displays the two most recent data summaries or the original and final locations
-* if finalTest is true
-*
-* INPUT:
-* ContentId - The ID of the content where the summary will be added (created from locationCounter)
-*
-* OUTPUT:
-* Adds a summary element to the content, locks the canvas, starts the testing
-* status animation, and captures the canvas representation
-*/
-    function resultComparison(summary) {
-        const testResultElement = document.getElementById("test-result");
-
-        // Remove all existing labels before updating
-        testResultElement.querySelectorAll('.label').forEach(label => label.remove());
-
-        const currentLabel = document.createElement('div');
-        if (finalTest === true) {
-            // Clear existing summaries
-            testResultElement.replaceChildren();
-
-            // Add "Original Location" label and first summary
-            currentLabel.className = 'label';
-            currentLabel.textContent = 'Original Location';
-            testResultElement.appendChild(currentLabel);
-
-            const initialLocationSummary = document.getElementsByClassName('summary')[0];
-            const initialLocationSummaryClone = initialLocationSummary.cloneNode(true);
-            testResultElement.appendChild(initialLocationSummaryClone);
-
-            // Add "New Location" label and last summary
-            const newLabel = document.createElement('div');
-            newLabel.className = 'label';
-            newLabel.textContent = 'New Location';
-            testResultElement.appendChild(previousLabel);
-
-            const finalLocationSummary = document.getElementsByClassName('summary')[document.getElementsByClassName('summary').length - 1];
-            const finalLocationSummaryClone = finalLocationSummary.cloneNode(true);
-            testResultElement.appendChild(finalLocationSummaryClone);
-        } else {
-            // Original behavior: Manage the test-result div to show only the last two samples
-            const summaryClone = summary.cloneNode(true);
-
-            // Remove old summaries if there are already two present
-            while (testResultElement.children.length >= 2) {
-                testResultElement.removeChild(testResultElement.lastChild);
-            }
-
-            // Insert new summary at the top
-            testResultElement.insertBefore(summaryClone, testResultElement.firstChild);
-
-            // Add "Current" label above the newest summary
-            const currentLabel = document.createElement('div');
-            currentLabel.className = 'label';
-            currentLabel.textContent = 'Current';
-            testResultElement.insertBefore(currentLabel, summaryClone);
-
-            // Add "Previous" label if there's an older summary
-            const summaries = testResultElement.querySelectorAll('.sample-summary');
-            if (summaries.length > 1) {
-                const previousLabel = document.createElement('div');
-                previousLabel.className = 'label';
-                previousLabel.textContent = 'Previous';
-                testResultElement.insertBefore(previousLabel, summaries[1]);
-            }
-        }
-    }
 
     /*
     * DESCRIPTION:
@@ -1201,7 +1224,7 @@
     /*
     * DESCRIPTION:
     * Keeps count of the current number of pilots. This logic was separated
-    * to help with refactization down the line.
+    * to help with factorization down the line.
     *
     * INPUT:
     * pilotRuns - A global int value starting at 0
@@ -1210,15 +1233,19 @@
     * Locks the canvas and both the post and test buttons.
     */
     function pilotLimiter(limit) {
-        // If the pilot run count exceeds 5, disable buttons and prompt
-        if (pilotRuns === limit) {
-            lockCanvas(0);
-            limitPopup.classList.add('show');
+        // If the pilot run count equals the limit, switch to final test mode.
+        if (pilotRuns >= limit) {
+            finalTest = true;
+            lockCanvas(0);  // Locks the canvas indefinitely
 
+            // Displays the limit popup
+            limitPopup.classList.add('show');
             setTimeout(() => {
                 limitPopup.classList.remove('show');
             }, 5000);
-            // Swaps the test button out with the post changes button
+
+
+            // Swap the test button out for the Publish Changes button.
             testButton.style.display = 'none';
             postButton.style.display = 'block';
         }
@@ -1246,13 +1273,13 @@
         document.getElementById('post-button').disabled = true;
         document.getElementById('test-button').disabled = true;
 
-        // If a time parameter is provided, set a timeout to unlock the canvas
-        if (duration > 0) {
+        // If a time parameter is provided and this is not the final test, set a timeout to unlock the canvas
+        if ((duration > 0) && (finalTest === false)) {
             setTimeout(() => {
                 stopTestingStatus(); // Removes the testing status text if running.
                 canvasLocked = false;
 
-                // Reenables the 'Post Changes' and 'Show Sample' buttons
+                // Re-enables the 'Post Changes' and 'Show Sample' buttons
                 document.getElementById('post-button').disabled = false;
                 document.getElementById('test-button').disabled = false;
             }, duration);
@@ -1318,74 +1345,40 @@
         let isScrollPopupShown = false;
 
         testButton.addEventListener('click', () => {
-            // If the user clicks the test button but has not moved the moveable element since loading,
-            // show the movement popup
-            if (!initialMovement){
+            // If the user clicks the test button but has not moved the movable element since loading,
+            // show the movement popup and exit.
+            if (!initialMovement) {
                 movePopup.classList.add('show');
-
-                // Automatically hide the popup after 5 seconds
                 setTimeout(() => {
                     movePopup.classList.remove('show');
                 }, 5000);
+                return; // Stop further processing if no movement has occurred.
             }
-            // Else create sample and add it to the tab conttainer
-            else {
-                const contentId = `content-${locationCounter}`;
-                if (!document.getElementById(contentId)) {
-                    addTab(locationCounter);
-                }
-                // If the user clicks the test button and has moved the element since last pilot run,
-                // increment location counter so the data is appended to a new tab.
-                createSampleSummary(contentId);
-                if (spotChanged) {
-                    locationCounter++;
-                    sampleCounter = 0; // Reset sample counter for new location
-                }
-                // Check if the user has already scrolled down
-                if ((initialMovement && !isScrollPopupShown) &&
-                    (document.body.scrollHeight > document.documentElement.clientHeight && window.scrollY === 0)) {
 
-                    // Show the popup with the slide-up animation
-                    scrollPopup.classList.add('show');
-                    isScrollPopupShown = true;
-
-                    // Automatically hide the popup after 5 seconds
-                    setTimeout(() => {
-                        scrollPopup.classList.remove('show');
-                    }, 5000);
-
-                }
-
-                pilotRuns++; // Increments the pilot runs
-
-                pilotLimiter(5);
-
-            }
-            const contentId = `content-${locationCounter + 1}`;
-
-            // Calls createSampleSummary function
-            createSampleSummary(contentId);
-
-            // Show the popup with the slide-up animation
-            testingPopup.classList.add('show');
-
-            // Automatically hide the popup after 5 seconds
-            setTimeout(() => {
-                testingPopup.classList.remove('show');
-            }, 5000);
-
-
-            if (spotChanged) {
-                locationCounter++;
-                sampleCounter = 0; // Reset sample counter for new location
-
-                // REFACTOR
-                // Disabled to prevent additional pilots within a tab
-                // spotChanged = false;
-
+            // Create sample summary for the current location.
+            const contentId = `content-${locationCounter}`;
+            if (!document.getElementById(contentId)) {
                 addTab(locationCounter);
             }
+            createSampleSummary(contentId);
 
+            // If the movable element was moved from its last position, update locationCounter and reset sampleCounter.
+            if (spotChanged) {
+                locationCounter++;
+                sampleCounter = 0;
+            }
+
+            // Increments the pilotRuns count and checks if the pilot run limit has been reached.
+            pilotRuns++;
+            pilotLimiter(5);
+
+            // Show testingPopup briefly.
+            if (pilotRuns === 1) {
+                testingPopup.classList.add('show');
+                setTimeout(() => {
+                    testingPopup.classList.remove('show');
+                }, 5000);
+            }
         });
 
         // Event listener for the Publish (Publish) button
@@ -1477,8 +1470,8 @@
         document.addEventListener('DOMContentLoaded', () => {resizeCanvas();});
     }
 
-/*** Initialization ***/
-initializeData();           // Initialize sample and population data
-resizeCanvas();             // Set up canvas dimensions and draw elements
-initializeEventListeners(); // Set up event handlers
+    /*** Initialization ***/
+    initializeData();           // Initialize sample and population data
+    resizeCanvas();             // Set up canvas dimensions and draw elements
+    initializeEventListeners(); // Set up event handlers
 })();

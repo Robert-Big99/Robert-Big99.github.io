@@ -67,12 +67,24 @@
             and check out the results below!
         </p>
     </div>
-    <div id="limit-popup" class="suggestion-popup" aria-live="polite">
+    <div id="limit-warning-popup" class="suggestion-popup" aria-live="polite">
         <p>
             You are out of time!<BR>
-            You need to pick from one of the <BR>
-            sample locations listed below<BR></BR>
+            Pick a location and press "Publish Changes"<BR>
+            to see how your how choice impacted the CTR.<BR>
         </p>
+    </div>
+
+    <div id="limit-reached-popup" class="suggestion-popup" aria-live="polite">
+        <p>
+            You are out of time!<BR>
+            Pick a location and press "Publish Changes"<BR>
+            to see how your how choice impacted the CTR.<BR>
+        </p>
+    </div>
+
+    <div id="outcome-popup" class="suggestion-popup" aria-live="polite">
+        <!--outcome popup is populated by the resultComparison function-->
     </div>
 
 
@@ -128,9 +140,10 @@
             </div>
         </div>
         <div id="testing-status-text"></div>
+        <div id="test-result"></div>
+        <h3 id="comparison-type"></h3>
         <button id="test-button" title="Show sample data for the selected location">Pilot Run</button>
         <button id="post-button" title="Post changes and display the population data">Publish Changes</button>
-        <div id="test-result"></div>
     </div>
 
 

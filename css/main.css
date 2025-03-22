@@ -198,7 +198,6 @@
             font-size: 1em;
             text-align: start;
             font-family: monospace;
-            white-space: nowrap;
         }
 
         /* Clock Animation */
@@ -444,7 +443,7 @@
             }
             #output-interface {
                 grid-column: 1/17 !important;
-                grid-row: 13/17 !important; 
+                grid-row: 13/17 !important;
             }
         }
 
@@ -483,7 +482,7 @@
             }
             #test-result{
                 grid-column: 1/6;
-                grid-row: 2/4;
+                grid-row: 4/6;
             }
             #testing-wrapper h2{
                 text-align: center;
@@ -491,12 +490,12 @@
                 grid-row: 1/2;
             }
             #testing-wrapper button{
-                grid-column: 5/6;
+                grid-column: 4/6;
                 grid-row: 6/7;
             }
             #clock-container {
-                grid-column: 1/2;
-                grid-row: 6/7;
+                grid-column: 3/4;
+                grid-row: 2/3;
                 margin: 1% 0;
                 max-height: 75px;
                 max-width: 75px;
@@ -515,7 +514,15 @@
                 margin: auto 0;
                 text-align: left;
                 grid-column: 1/6;
-                grid-row: 2/4;
+                grid-row: 4/6;
+            }
+
+            #comparison-type{
+                visibility: visible;
+                margin: auto 0;
+                text-align: left;
+                grid-column: 1/6;
+                grid-row: 3/4;
             }
             #initial-summary {
                 width: 100%;
