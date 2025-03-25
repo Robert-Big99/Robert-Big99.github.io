@@ -35,21 +35,41 @@
 	<link rel="stylesheet" href="css/main.css">
 </head>
 <body>
-    <!-- Header -->
-    <header>
-        <h1>Stats Teacher</h1>
-    </header>
     <!-- Loader Icon -->
     <div class="loader" aria-busy="true" aria-live="polite">
         <div class="loader-icon"></div>
     </div>
-
     <!-- Rotate Prompt -->
     <div id="rotate-prompt" role="dialog" aria-modal="true" aria-label="Rotate Prompt">
         <p>Please swap to a desktop or tablet for the best experience.</p>
     </div>
+    <!-- Header -->
+    <header>
+        <h1>Stats Teacher</h1>
+    </header>
 
     <!-- Popups -->
+
+    <!-- Initial popup -->
+    <div id="initial-popup" class="initial-Popup" role="dialog" aria-modal="true" aria-labelledby="popup-title">
+        <div class="popup-content">
+            <h2 id="popup-title">Welcome to Stats Teacher!</h2>
+            <p>
+                This application was designed to help teach statistical concepts by simulating the role of a web designer.<br>
+                <br>
+                How to play: <br>
+                The goal is to move the Equation Solver around the screen and try to find the place that nets the highest amount of clicks.<br>
+                <br>
+                You can test a location by pressing "Pilot Run". Once you've decided on a good location, hit "Publish Changes" to see the results for the month.
+            </p>
+            <label>
+                <input type="checkbox" id="dont-show-again-checkbox"> Don't show this again
+            </label>
+            <button id="popup-close-button" aria-label="Close this popup">OK</button>
+        </div>
+    </div>
+
+    <!-- Suggestion Popups-->
     <div id="scroll-popup" class="popup" aria-live="polite">
         <p>Scroll down to see the results!</p>
     </div>
@@ -85,65 +105,36 @@
         <!--outcome popup is populated by the resultComparison function-->
     </div>
 
-
-    <!-- Initial popup -->
-    <div id="initial-popup" class="initial-Popup" role="dialog" aria-modal="true" aria-labelledby="popup-title">
-        <div class="popup-content">
-            <h2 id="popup-title">Welcome to Stats Teacher!</h2>
-            <p>
-                This application was designed to help teach statistical concepts by simulating the role of a web designer.<br>
-                <br>
-                How to play: <br>
-                The goal is to move the Equation Solver around the screen and try to find the place that nets the highest amount of clicks.<br>
-                <br>
-                You can test a location by pressing "Pilot Run". Once you've decided on a good location, hit "Publish Changes" to see the results for the month.
-            </p>
-            <label>
-                <input type="checkbox" id="dont-show-again-checkbox"> Don't show this again
-            </label>
-            <button id="popup-close-button" aria-label="Close this popup">OK</button>
-        </div>
-    </div>
+    <section id="content-wrapper">
+        <!-- Canvas Interface -->
+        <section id="canvas-interface" class="canvas-interface" aria-label="Statistical Visualization">
+            <canvas id="canvas" aria-label="Interactive statistical visualization"></canvas>
+        </section>
 
 
-    <!-- Canvas Interface -->
-    <section id="canvas-interface" class="canvas-interface" aria-label="Statistical Visualization">
-        <canvas id="canvas" aria-label="Interactive statistical visualization"></canvas>
-    </section>
-
-
-    <!-- Input Interface -->
-    <div id="input-interface-wrapper">
-        <nav id="input-interface" class="input-interface" aria-label="Controls">
-            <!--
-            DISABLED FOR NOW
-
-            <span class="breakpoint">
-                <button id="copy-button" title="Copy all data to clipboard">Copy Data</button>
-                <button id ="reset-button" style title ="Reset the application">Reset</button>
-            </span>
-
-             -->
-        </nav>
-    </div>
-
-
-    <!-- Testing Status Indicator -->
-    <div id="testing-wrapper" class="testing-wrapper">
-        <h2>Change Metrics</h2>
-        <!-- Clock Container -->
-        <div id="testing-status-clock">
-            <div id="clock-face">
-                <div id="clock-hand"></div>
+        <!-- Testing Status Indicator -->
+        <div id="testing-wrapper" class="testing-wrapper">
+            <h2>Change Metrics</h2>
+            <!-- Clock Container -->
+            <div id="testing-status-clock">
+                <div id="clock-face">
+                    <div id="clock-hand"></div>
+                </div>
             </div>
-        </div>
-        <div id="testing-status-text"></div>
-        <div id="test-result"></div>
-        <h3 id="comparison-type"></h3>
-        <button id="test-button" title="Show sample data for the selected location">Pilot Run</button>
-        <button id="post-button" title="Post changes and display the population data">Publish Changes</button>
-    </div>
 
+            <div id="testing-status-text"></div>
+
+            <h3 id="comparison-type"></h3>
+
+            <div id="test-result"></div>
+
+            <button id="test-button" title="Show sample data for the selected location">Pilot Run</button>
+            <button id="post-button" title="Post changes and display the population data">Publish Changes</button>
+        </div>
+
+        <!-- JavaScript -->
+        <script src="javascript/main.js" type="module"></script>
+    </section>
 
     <!-- Output Interface -->
     <section id="output-interface" class="output-interface" aria-label="Results and Data">
@@ -153,7 +144,5 @@
             <div id="tab-contents"></div>
         </div>
     </section>
-	<!-- JavaScript -->
-	<script src="javascript/main.js" type="module"></script>
 </body>
 </html>
