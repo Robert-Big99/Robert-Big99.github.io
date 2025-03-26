@@ -107,6 +107,7 @@
     const initialPopup = document.getElementById("initial-popup");
     const testingPopup = document.getElementById('testing-popup');
     const movePopup = document.getElementById("move-popup");
+    const warningPopup = document.getElementById("limit-warning-popup");
     const limitPopup = document.getElementById("limit-reached-popup");
     const outcomePopup = document.getElementById("outcome-popup");
     const scrollPopup = document.getElementById("scroll-popup");
@@ -726,8 +727,8 @@
             } else {
                 outcomePopup.textContent = 'Close, but not quite!';
             }
-
-            outcomePopup.classList.add('show');
+            // | IMPLEMENT FUNCTIONALITY LATER|
+            //outcomePopup.classList.add('show');
             setTimeout(() => {
                 outcomePopup.classList.remove('show');
             }, 5000);
@@ -789,7 +790,7 @@
                 <p>
                     <span class= "line">Visitors: ${populationSize} </span><br>
                     <span class= "line">Clicks: ${totalClicks} </span><br>
-                    <span class= "line">Click-Through Rate: ${ctr}% </span><br>
+                    <span class= "line">CTR: ${ctr}% </span><br>
                 </p>
             `;
         document.getElementById(contentId).appendChild(summary);
@@ -883,7 +884,7 @@
                 <p>
                     <span class="line">Visitors: ${samplePopulation}</span><br>
                     <span class="line">Clicks: ${sampleClicks}</span><br>
-                    <span class="line">Click-Through Rate: ${sampleCTR}%</span><br>
+                    <span class="line">CTR: ${sampleCTR}%</span><br>
                 </p>
             `;
 
@@ -959,7 +960,7 @@
                     <!--<span class="line">[Day ${sampleCounter}]</span><br>-->
                     <span class="line">Visitors: ${totalPopulation}</span><br>
                     <span class="line">Clicks: ${totalClicks}</span><br>
-                    <span class="line">Click-Through Rate: ${totalCTR}%</span><br>
+                    <span class="line">CTR: ${totalCTR}%</span><br>
                 </p>
             `
 
@@ -1230,6 +1231,14 @@
     */
     function pilotLimiter(limit) {
         // If the pilot run count equals the limit, switch to final test mode.
+        if (pilotRuns === (limit - 1)) {
+
+            // Displays the limit popup
+            warningPopup.classList.add('show');
+            setTimeout(() => {
+                warningPopup.classList.remove('show');
+            }, 5000);
+        }
         if (pilotRuns >= limit) {
             finalTest = true;
             lockCanvas(0);  // Locks the canvas indefinitely
@@ -1349,6 +1358,21 @@
                     movePopup.classList.remove('show');
                 }, 5000);
                 return; // Stop further processing if no movement has occurred.
+            }
+
+            // Check if the user has already scrolled down
+            if ((initialMovement && !isScrollPopupShown ) &&
+                (document.body.scrollHeight > document.documentElement.clientHeight && window.scrollY === 0)) {
+                const scrollPopup = document.getElementById('scroll-popup');
+
+                // Show the popup with the slide-up animation
+                scrollPopup.classList.add('show');
+                isScrollPopupShown = true;
+
+                // Automatically hide the popup after 5 seconds
+                setTimeout(() => {
+                    scrollPopup.classList.remove('show');
+                }, 5000);
             }
 
             // Create sample summary for the current location.
