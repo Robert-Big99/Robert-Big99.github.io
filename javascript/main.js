@@ -354,14 +354,22 @@
         const tabContainer = document.getElementById('tab-container');
         tabContainer.style.visibility = 'hidden';
 
-        // Hides the result comparisons
+        // hides the comparisons type
+        const comparisonType = document.getElementById('comparison-type');
+        comparisonType.style.visibility = 'hidden';
+
+        // Hides the test results
         const testResult = document.getElementById('test-result');
         testResult.style.visibility = 'hidden';
 
+        // Shows the testingStatus clock
+        const testingStatusClock = document.getElementById('testing-status-clock');
+        testingStatusClock.style.visibility = 'visible';
+
         // Shows the testingStatus text
-        const testingStatus = document.getElementById('testing-status-text');
-        testingStatus.style.visibility = 'visible';
-        testingStatus.textContent = ''; // Clear previous text
+        const testingStatusText = document.getElementById('testing-status-text');
+        testingStatusText.style.visibility = 'visible';
+        testingStatusText.textContent = ''; // Clear previous text
 
         let ellipses = '';
         let message = '';
@@ -376,7 +384,7 @@
         // Animate the ellipses
         ellipsesInterval = setInterval(() => {
             ellipses = ellipses.length < 3 ? ellipses + '.' : ''; // Cycle through `.`, `..`, `...`
-            testingStatus.textContent = `${message}${ellipses}`;
+            testingStatusText.textContent = `${message}${ellipses}`;
         }, 400); // Adjust animation speed (change as needed)
 
         // Automatically stop the animation after the duration
@@ -402,11 +410,20 @@
             ellipsesInterval = null; // Reset the interval ID
         }
 
+        // Hides the testingStatus clock
+        const testingStatusClock = document.getElementById('testing-status-clock');
+        testingStatusClock.style.visibility = 'hidden';
+
+
         // Hides the testingStatus text
         const testingStatus = document.getElementById('testing-status-text');
         testingStatus.style.visibility = 'hidden'; // Hide the text
 
-        // Shows the result comparisions
+        // Shows the comparisons type
+        const comparisonType = document.getElementById('comparison-type');
+        comparisonType.style.visibility = 'visible';
+
+        // Shows the test results
         const testResult = document.getElementById('test-result');
         testResult.style.visibility = 'visible';
 
@@ -653,83 +670,96 @@
     * Adds a summary element to the content, locks the canvas, starts the testing
     * status animation, and captures the canvas representation
     */
-
     function resultComparison(summary) {
         const testResultElement = document.getElementById("test-result");
         const comparisonType = document.getElementById("comparison-type");
 
-        // Remove all existing labels before updating
-        testResultElement.querySelectorAll('.label').forEach(label => label.remove());
+        // Create or get the container div
+        let resultComparisonDiv = document.getElementById("result-comparison");
+        if (!resultComparisonDiv) {
+            resultComparisonDiv = document.createElement("div");
+            resultComparisonDiv.id = "result-comparison";
+            testResultElement.appendChild(resultComparisonDiv);
+        }
 
-        const currentLabel = document.createElement('div');
+        // Create or get divs for current and previous summaries
+        let previousSummaryDiv = document.getElementById("previous-summary");
+        if (!previousSummaryDiv) {
+            previousSummaryDiv = document.createElement("div");
+            previousSummaryDiv.id = "previous-summary";
+        }
+
+        let currentSummaryDiv = document.getElementById("current-summary");
+        if (!currentSummaryDiv) {
+            currentSummaryDiv = document.createElement("div");
+            currentSummaryDiv.id = "current-summary";
+        }
+
+        const currentLabel = document.createElement("div");
+        const previousLabel = document.createElement("div");
+
         if (finalTest === true) {
-
-            // Clear existing summaries
-            testResultElement.replaceChildren();
             comparisonType.innerHTML = 'Publication Comparisons';
 
+            // Move current summary to previous summary if it exists
+            if (currentSummaryDiv.children.length > 1) {
+                previousSummaryDiv.innerHTML = "";
+                previousLabel.className = 'label';
+                previousLabel.textContent = 'Original';
+                previousSummaryDiv.appendChild(previousLabel);
+                previousSummaryDiv.appendChild(currentSummaryDiv.children[1]);
+            }
 
-            // Add "New Location" label and last summary
-            const newLabel = document.createElement('div');
-            newLabel.className = 'label';
-            newLabel.textContent = 'New';
-            testResultElement.appendChild(newLabel);
+            // Add "New" label and last summary
+            currentSummaryDiv.innerHTML = "";
+            currentLabel.className = 'label';
+            currentLabel.textContent = 'New';
 
             const finalLocationSummary = document.getElementsByClassName('summary')[document.getElementsByClassName('summary').length - 1];
             const finalLocationSummaryClone = finalLocationSummary.cloneNode(true);
-            testResultElement.appendChild(finalLocationSummaryClone);
 
-            // Add "Original Location" label and first summary
-            currentLabel.className = 'label';
-            currentLabel.textContent = 'Original';
-            testResultElement.appendChild(currentLabel);
+            currentSummaryDiv.appendChild(currentLabel);
+            currentSummaryDiv.appendChild(finalLocationSummaryClone);
 
-            const initialLocationSummary = document.getElementsByClassName('summary')[1];
-            const initialLocationSummaryClone = initialLocationSummary.cloneNode(true);
-            testResultElement.appendChild(initialLocationSummaryClone);
-
-            if (ctrComparison[0] < ctrComparison[1]){
+            if (ctrComparison[0] < ctrComparison[1]) {
                 outcomePopup.textContent = 'Great Job!';
-            } else{
+            } else {
                 outcomePopup.textContent = 'Close, but not quite!';
             }
-
 
             outcomePopup.classList.add('show');
             setTimeout(() => {
                 outcomePopup.classList.remove('show');
             }, 5000);
-
         } else {
-
             comparisonType.innerHTML = 'Pilot Comparisons';
 
-            // Original behavior: Manage the test-result div to show only the last two samples
-            const summaryClone = summary.cloneNode(true);
-
-            // Remove old summaries if there are already two present
-            while (testResultElement.children.length >= 2) {
-                testResultElement.removeChild(testResultElement.lastChild);
-            }
-
-            // Insert new summary at the top
-            testResultElement.insertBefore(summaryClone, testResultElement.firstChild);
-
-            // Add "Current" label above the newest summary
-            currentLabel.className = 'label';
-            currentLabel.textContent = 'Current';
-            testResultElement.insertBefore(currentLabel, summaryClone);
-
-            // Add "Previous" label if there's an older summary
-            const summaries = testResultElement.querySelectorAll('.sample-summary');
-            if (summaries.length > 1) {
-                const previousLabel = document.createElement('div');
+            // Move current summary to previous summary if it exists
+            if (currentSummaryDiv.children.length > 1) {
+                previousSummaryDiv.innerHTML = "";
                 previousLabel.className = 'label';
                 previousLabel.textContent = 'Previous';
-                testResultElement.insertBefore(previousLabel, summaries[1]);
+                previousSummaryDiv.appendChild(previousLabel);
+                previousSummaryDiv.appendChild(currentSummaryDiv.children[1]);
             }
+
+            // Clone the new summary
+            const summaryClone = summary.cloneNode(true);
+
+            currentSummaryDiv.innerHTML = "";
+            currentLabel.className = 'label';
+            currentLabel.textContent = 'Current';
+            currentSummaryDiv.appendChild(currentLabel);
+            currentSummaryDiv.appendChild(summaryClone);
         }
+
+        // Append all elements to result-comparison div
+        resultComparisonDiv.appendChild(comparisonType);
+        resultComparisonDiv.appendChild(previousSummaryDiv);
+        resultComparisonDiv.appendChild(currentSummaryDiv);
     }
+
+
 
     /*
     * DESCRIPTION:
@@ -779,7 +809,7 @@
          // ######################################################################################################################## */
 
         // Creates the data table for the zone
-        createInitialTable(contentId, zoneIndex);
+        createDataTable(contentId, zoneIndex);
 
         // Captures the canvas layout in text format at the time of the button press
         canvasRepresentations[contentId] = generateTextCanvasRepresentation();
@@ -796,7 +826,7 @@
     * OUTPUT:
     * Adds a population data table to the spreadsheet container.
     */
-    function createInitialTable(contentId, zoneIndex) {
+    function createDataTable(contentId, zoneIndex) {
         const data = zonePopulations[`zone${zoneIndex + 1}`];
         const spreadsheet = document.getElementById(`${contentId}-spreadsheet`);
         const table = document.createElement('table');
@@ -945,46 +975,12 @@
         resultComparison(summary);
 
         // Creates the data table for the zone
-        createPopulationTable(contentId, zoneIndex);
+        createDataTable(contentId, zoneIndex);
 
         // Captures the canvas layout in text format at the time of the button press
         canvasRepresentations[contentId] = generateTextCanvasRepresentation();
     }
 
-
-    /*
-    * DESCRIPTION:
-    * Creates a table displaying the population data and adds it to the spreadsheet container.
-    *
-    * INPUT:
-    * contentId - The ID of the content where the table will be added
-    * zoneIndex - The index of the selected zone
-    *
-    * OUTPUT:
-    * Adds a population data table to the spreadsheet container
-    */
-    function createPopulationTable(startContentId, zoneIndex) {
-        const data = zonePopulations[`zone${zoneIndex + 1}`];
-        const spreadsheet = document.getElementById(`${contentId}-spreadsheet`);
-        const table = document.createElement('table');
-        table.className = 'data-table';
-
-        const chunkSize = 50; // Number of entries per row
-        let tableHTML = '';
-
-        // Loop through chunks of the population data
-        for (let i = 0; i < data.length; i += chunkSize) {
-            const chunk = data.slice(i, i + chunkSize);
-            tableHTML +=
-                `
-                            <tr><th>User</th>${chunk.map((_, idx) => `<th>${i + idx + 1}</th>`).join('')}</tr>
-                            <tr><td>Clicked</td>${chunk.map(v => `<td>${v}</td>`).join('')}</tr>
-                        `;
-        }
-
-        table.innerHTML = tableHTML;
-        spreadsheet.appendChild(table);
-    }
 
 
     /*
