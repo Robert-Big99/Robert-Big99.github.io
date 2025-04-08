@@ -785,7 +785,7 @@
         // Creates the population summary element
         const summary = document.createElement('div');
         summary.className = 'summary population';
-        // Client requested constants for the initial summary.
+        //The client requested constants for the initial summary.
         summary.innerHTML =
             `
                 <p>
