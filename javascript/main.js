@@ -774,23 +774,24 @@
     * Adds a summary element and data table within a new tab.
     */
     function createInitialSummary(contentId, zoneIndex) {
-
-        const data = zonePopulations[`zone${zoneIndex + 1}`];
-        const totalClicks = data.reduce((acc, val) => acc + val, 0);
-        const populationSize = data.length;
-        const ctr = ((totalClicks / populationSize) * 100).toFixed(2);
+        // NOT IN USE CURRENTLY
+        // const data = zonePopulations[`zone${zoneIndex + 1}`];
+        // const totalClicks = data.reduce((acc, val) => acc + val, 0);
+        // const populationSize = data.length;
+        // const ctr = ((totalClicks / populationSize) * 100).toFixed(2);
 
         ctrComparison = ctrComparison.concat(ctr);
 
         // Creates the population summary element
         const summary = document.createElement('div');
         summary.className = 'summary population';
+        // Client requested constants for the initial summary.
         summary.innerHTML =
             `
                 <p>
-                    <span class= "line">Visitors: ${populationSize} </span><br>
-                    <span class= "line">Clicks: ${totalClicks} </span><br>
-                    <span class= "line">CTR: ${ctr}% </span><br>
+                    <span class= "line">Visitors: 22486 </span><br>
+                    <span class= "line">Clicks: 13649 </span><br>
+                    <span class= "line">CTR: 60.7% </span><br>
                 </p>
             `;
         document.getElementById(contentId).appendChild(summary);
