@@ -775,10 +775,10 @@
     */
     function createInitialSummary(contentId, zoneIndex) {
         // NOT IN USE CURRENTLY
-        // const data = zonePopulations[`zone${zoneIndex + 1}`];
-        // const totalClicks = data.reduce((acc, val) => acc + val, 0);
-        // const populationSize = data.length;
-        // const ctr = ((totalClicks / populationSize) * 100).toFixed(2);
+        const data = zonePopulations[`zone${zoneIndex + 1}`];
+        const totalClicks = data.reduce((acc, val) => acc + val, 0);
+        const populationSize = data.length;
+        const ctr = ((totalClicks / populationSize) * 100).toFixed(2);
 
         ctrComparison = ctrComparison.concat(ctr);
 
