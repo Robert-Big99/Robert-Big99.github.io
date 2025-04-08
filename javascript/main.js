@@ -675,6 +675,11 @@
         const testResultElement = document.getElementById("test-result");
         const comparisonType = document.getElementById("comparison-type");
 
+        const initialLocationSummary = document.getElementsByClassName('population')[0];
+        const initialLocationSummaryClone = initialLocationSummary.cloneNode(true);
+
+        console.log(initialLocationSummaryClone);
+
         // Create or get the container div
         let resultComparisonDiv = document.getElementById("result-comparison");
         if (!resultComparisonDiv) {
@@ -708,7 +713,9 @@
                 previousLabel.className = 'label';
                 previousLabel.textContent = 'Original';
                 previousSummaryDiv.appendChild(previousLabel);
-                previousSummaryDiv.appendChild(currentSummaryDiv.children[1]);
+
+                console.log(initialLocationSummaryClone);
+                previousSummaryDiv.appendChild(initialLocationSummaryClone);
             }
 
             // Add "New" label and last summary
@@ -774,7 +781,7 @@
     * Adds a summary element and data table within a new tab.
     */
     function createInitialSummary(contentId, zoneIndex) {
-        // NOT IN USE CURRENTLY
+
         const data = zonePopulations[`zone${zoneIndex + 1}`];
         const totalClicks = data.reduce((acc, val) => acc + val, 0);
         const populationSize = data.length;
@@ -785,7 +792,6 @@
         // Creates the population summary element
         const summary = document.createElement('div');
         summary.className = 'summary population';
-        //The client requested constants for the initial summary.
         summary.innerHTML =
             `
                 <p>
