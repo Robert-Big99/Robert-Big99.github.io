@@ -1,0 +1,590 @@
+/**
+ * FILE: main.js
+ * VERSION: 1.0.1
+ * DATE: 12/05/2024
+ * AUTHOR: REDACTED
+ *
+ * DESCRIPTION:
+ * This application is a complete redesign of WebDesignProject.xlsm for the Client Andrei Perkhounkov. It will function
+ * in any modern web browser, and most modern devices, both mobile and desktop. The application will be used to help
+ * teach statistics to students using web design as a driver of the education. It will accomplish this by simulating
+ * improvements or reductions in click-through rates on a moveable element in correlation with the distance from
+ * hidden element(s). It will then print the changes in the sample size out onto the webpage. Allowing the student
+ * to review and infer if the changes made are effective.
+ *
+ * VERSION NOTES:
+ * Version 1.0.1 is a hot patch containing several new QoL features as per the request of the client. Such as a loading
+ * icon for when the page loads, a first time popup to give the user info on the program, a popup to tell the user
+ * scroll down to the sample results, animations for sample and population events, and a testing status box containing
+ * a clock.
+ *
+ * CSS modifications: Please see .loader, .starting-popup, and #scroll-popup for changes, and  along with new
+ * properties for #testing-status check the and check the JavaScript for their respective Event listeners.
+ *
+ * DEVELOPER NOTE:
+ * Much of this may needs to be refactored in a later iteration. As many changes were patched in last minute to meet
+ * client demands. Please report any poorly implemented code for reassessment.
+ **/
+
+        * { box-sizing: border-box; }
+        html{
+            font-size: calc(0.5vw + 0.5em);
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #333;
+            color: #fff;
+        }
+
+        span.line {
+            display: inline-block;
+        }
+        span.breakpoint{
+            width: fit-content;
+            margin: 0;
+            display: flex;
+            flex-direction: row;
+        }
+
+        /* Header styling */
+        header {
+            margin: auto;
+            text-align: center;
+            background-color: #444;
+            border-bottom: 3px solid grey;
+            border-radius: 0% 0% 10% 10%;
+        }
+
+        header h1 {
+            max-height: fit-content;
+        }
+
+
+        /* Buttons */
+        button {
+            background-color: #555;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #666;
+        }
+        button:disabled {
+            background-color: #777;
+            cursor: not-allowed;
+        }
+
+        /* Canvas Interface */
+        #canvas-interface {
+            position: relative;
+
+            width: 100%;
+            max-width: 100vw;
+            max-height: 100vh;
+            aspect-ratio: 3/2;
+
+            background-color: #444;
+            border: 1px solid #666;
+        }
+
+        #canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        #testing-wrapper{
+            max-height: 100vh;
+        }
+        #post-button {
+            display: none;
+        }
+        #reset-button {
+            display: none;
+        }
+        #copy-button {
+            display: none;
+        }
+        /* Output Interface */
+        #output-interface {
+
+        }
+
+        .testing-wrapper button {
+            border-radius: 5%;
+        }
+
+        /* Tabs and Content */
+        .tab-container {
+            visibility: visible;
+            background-color: #444;
+            border: 1px solid #666;
+        }
+            /* Child of .tab-container */
+            .tabs {
+                display: flex;
+                overflow-x: auto;
+                border-bottom: 1px solid #666;
+            }
+                /* Child of .tabs */
+                .tab {
+                    text-align: center;
+                    width: 100px;
+                    padding: 5px 10px;
+                    cursor: pointer;
+                    background-color: #555;
+                    border-right: 1px solid #666;
+                    flex-shrink: 0;
+                }
+                .tab.active {
+                    background-color: #666;
+                }
+                #tab-contents {
+                    overflow-x: auto;
+                    overflow-y: auto;
+                    max-height: 300px;
+                }
+                .tab-content {
+                    display: none;
+                    padding: 0px;
+                }
+                .tab-content.active {
+                    display: block;
+                }
+                tbody :nth-child(1){
+                    text-align: start;
+                }
+                #data-table{
+                }
+
+        /* Testing Popup */
+        .testing-wrapper {
+            background-color: #444;
+            color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: all .5s ease;
+        }
+            /* Children of testing-wrapper */
+            #testing-status-text {
+                padding: 0 10px;
+                text-align: start;
+                font-family: monospace;
+            }
+
+            #comparison-type{
+                text-align: center;
+                visibility: visible;
+                margin: auto 0;
+            }
+
+            /* Clock Animation */
+            #testing-status-clock {
+                visibility: hidden;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+                /* Children of clock-container */
+                #clock-face {
+                    width: 100px;
+                    height: 100px;
+                    border: 5px solid #fff;
+                    border-radius: 50%;
+                    position: relative;
+                }
+                #clock-hand {
+                    width: 2px;
+                    height: 45px;
+                    background-color: #ff4500;
+                    position: absolute;
+                    top: 5px;
+                    left: 50%;
+                    transform-origin: bottom;
+                    transform: rotate(0deg);
+                }
+
+        /* Summaries */
+        .summary {
+            display: flex;
+            align-content: center;
+            line-height: 1.8;
+            padding: 0 10px;
+            margin: 10px 0;
+            background-color: #555;
+            border-left: 3px solid grey;
+            border-right: 3px solid grey;
+            border-radius: 5px;
+        }
+        .summary.initial {
+            text-align: center;
+        }
+        .summary.population {
+        }
+        .summary p {
+            margin: 0;
+        }
+
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            text-align: center;
+        }
+        .data-table th, .data-table td {
+            border: 1px solid #666;
+            padding:8px;
+        }
+        .data-table th {
+            background-color: #555;
+        }
+
+        .popup-content {
+            margin: auto;
+            background-color: #444;
+            color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            width: 450px;
+            height: 500px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .popup {
+            padding: 10px;
+            text-align: center;
+
+            left: 85%;
+            position: fixed;
+            bottom: -100px;
+
+            background-color: #444;
+            color: #fff;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+
+            visibility: hidden;
+            transform: translateX(-50%);
+            transition: bottom .5s ease;
+        }
+        .popup.show {
+            bottom: 10px;
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #dynamic-border {
+            display: none;
+            min-width: 200px;
+        }
+
+        /* Loader */
+        .loader {
+            overflow: hidden;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #333;
+            z-index: 300;
+        }
+        .loader::after {
+            content: "";
+            width: 75px;
+            height: 75px;
+            border: 15px solid #ddd;
+            border-top-color: #7449f5;
+            border-radius: 50%;
+            animation: loading .75s linear infinite;
+        }
+        @keyframes loading {
+            from {transform: rotate(0deg);}
+            to {transform: rotate(360deg);}
+        }
+        .loader-hidden {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity .75s ease, visibility .75s ease;
+        }
+
+        /* Rotate Prompt */
+        #rotate-prompt {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(51,51,51,0.95);
+            color: #fff;
+            text-align: center;
+            align-content: center;
+            align-items: center;
+            z-index:500;
+        }
+        #rotate-prompt p {
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* Popups */
+        #initial-popup {
+            display: none; /* Hidden by default */
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 220;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            color: #fff;
+            text-align: center;
+        }
+        #popup-close-button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: #555;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color .3s ease;
+        }
+        #popup-close-button:hover {
+            background-color: #666;
+        }
+
+        #move-popup{ z-index: 125;}
+        #scroll-popup{ z-index : 150; left: 60%}
+        #testing-popup{z-index: 125}
+
+        /* Switch Device prompt */
+        @media only screen and (orientation: landscape) and (max-width: 675px) {
+            body.no-scroll {
+                height: 100%;
+                width: 100%;
+                overflow: hidden;
+            }
+            #rotate-prompt {
+                display: block;
+            }
+        }
+
+        @media only screen and (min-width: 8000000px) {
+            body.no-scroll {
+                height: 100%;
+                width: 100%;
+                overflow: hidden;
+            }
+            #rotate-prompt {
+                display: block;
+            }
+        }
+
+
+
+        /* Landscape Layout */
+        @media only screen and (orientation: landscape) {
+            body {
+                margin: 0;
+            }
+            header {
+                align-content: center;
+                width: 100%;
+            }
+            h1 {
+                margin: 0;
+            }
+            #content-wrapper{
+                margin: 1% 2% 1%;
+                display: flex;
+                flex-direction: row-reverse;
+                justify-content: space-between;
+            }
+            #canvas-interface {
+                max-width: 1200px;
+                min-width: 575px;
+
+            }
+            #testing-wrapper {
+                display: grid;
+                max-width: 25vw;
+                grid-template-columns: repeat(5, 1fr);
+                grid-template-rows: repeat(6, 1fr);
+            }
+            /* Children of testing wrapper */
+                #testing-wrapper h2{
+                    text-align: center;
+
+                    grid-column: 1/6;
+                    grid-row: 1/2;
+                }
+                #testing-wrapper button{
+                    margin: 2%;
+                    grid-column: 2/5;
+                    grid-row: 6/7;
+                }
+                #testing-status-clock {
+                    grid-column: 3/4;
+                    grid-row: 3/4;
+
+                    margin: 1% 0;
+                    max-height: 75px;
+                    max-width: 75px;
+                }
+                /* Children of clock-container */
+                        #clock-face {
+                            border-width: 3px;
+                            max-height: 60px;
+                            max-width: 60px;
+                        }
+                        #clock-hand {
+                            border-radius: 20%;
+                            width: 2px;
+                            height: 22px
+                        }
+
+                #testing-status-text {
+                    margin: auto 0;
+                    text-align: center;
+
+                    grid-column: 1/6;
+                    grid-row: 4/5;
+                }
+                #test-result{
+                    grid-column: 1/6;
+                    grid-row: 2/6;
+                }
+                    /* Children of #test-result */
+                    #comparison-type {
+                        margin-bottom: 10px;
+
+                    }
+            #output-interface {
+                bottom: 0;
+                width: 100%;
+            }
+        }
+        /* Removes the side margins on the content-wrapper div on small screens to improve the layout */
+        @media only screen and (orientation: landscape) and (max-width: 750px ){
+            #content-wrapper{
+                margin-left: 0;
+                margin-right: 0;
+
+            }
+        }
+        /* Removes all margins and the header to free up screen real-estate on even smaller screens*/
+        @media only screen and (orientation: landscape) and (min-aspect-ratio: 16/9) and (max-height: 430px ){
+            header{
+                display: none;
+            }
+            #content-wrapper{
+                margin: 0;
+
+            }
+        }
+
+
+        /* Portrait Layout */
+        @media only screen and (orientation: portrait) {
+            body {
+                margin: 0;
+            }
+            header {
+                align-content: center;
+                width: 100%;
+            }
+            h1 {
+                margin: 0;
+            }
+            #content-wrapper{
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                gap: 20px;
+
+            }
+            #testing-wrapper {
+                max-height: 30vh;
+                border-radius: unset;
+                display: grid;
+                grid-template-columns: repeat(5, 1fr);
+                grid-template-rows: repeat(5, 1fr);
+            }
+            #result-comparison{
+                padding-top: 1%;
+            }
+            #current-summary{
+                float: left;
+                padding-left: 2.5%;
+                padding-right: 2.5%;
+                width: 45%;
+            }
+            #previous-summary{
+                float: right;
+                padding-left: 2.5%;
+                padding-right: 2.5%;
+                width: 45%;
+            }
+                /* Children of testing wrapper */
+                #testing-wrapper h2{
+                    text-align: center;
+
+                    grid-column: 1/6;
+                    grid-row: 1/2;
+                }
+                #testing-wrapper button{
+                    margin: 2%;
+                    grid-column: 5/6;
+                    grid-row: 5/6;
+                }
+                #testing-status-clock {
+                    grid-column: 1/2;
+                    grid-row: 5/6;
+
+                    margin: 1% 0;
+                    max-height: 75px;
+                    max-width: 75px;
+                }
+                    /* Children of clock-container */
+                    #clock-face {
+                        border-width: 3px;
+                        max-height: 60px;
+                        max-width: 60px;
+                    }
+                    #clock-hand {
+                        border-radius: 20%;
+                        width: 2px;
+                        height: 22px
+                    }
+
+                #testing-status-text {
+                    margin: auto 0;
+                    text-align: left;
+
+                    grid-column: 2/5;
+                    grid-row: 5/6;
+                }
+                #test-result{
+                    grid-column: 1/6;
+                    grid-row: 2/5;
+                }
+                    /* Children of #test-result */
+                    #comparison-type {
+                        margin-bottom: 10px;
+
+                    }
+                #output-interface {
+                    margin-top: 20px;
+                    width: 100%;
+                }
+            }

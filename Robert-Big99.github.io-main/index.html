@@ -1,0 +1,154 @@
+
+<!DOCTYPE html>
+<!--
+ * FILE: main.js
+ * VERSION: 1.0.1
+ * DATE: 12/05/2024
+ * AUTHOR: Robert Biggart
+ *
+ * DESCRIPTION:
+ * This application is a complete redesign of WebDesignProject.xlsm for the Client Andrei Perkhounkov. It will function
+ * in any modern web browser, and most modern devices, both mobile and desktop. The application will be used to help
+ * teach statistics to students using web design as a driver of the education. It will accomplish this by simulating
+ * improvements or reductions in click-through rates on a moveable element in correlation with the distance from
+ * hidden element(s). It will then print the changes in the sample size out onto the webpage. Allowing the student
+ * to review and infer if the changes made are effective.
+ *
+ * VERSION NOTES:
+ * Version 1.0.1 is a hot patch containing several new QoL features as per the request of the client. Such as a loading
+ * icon for when the page loads, a first time popup to give the user info on the program, a popup to tell the user
+ * scroll down to the sample results, animations for sample and population events, and a testing status box containing
+ * a clock.
+-->
+<html lang="en">
+<head>
+    <!-- Page metadata -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <!-- Title and Tab Icon -->
+    <title>Stats Teacher</title>
+    <link rel="icon" type="image/x-icon" href="images/ST_Favicon.ico">
+
+    <!-- CSS -->
+	<link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <!-- Loader Icon -->
+    <div class="loader" aria-busy="true" aria-live="polite">
+        <div class="loader-icon"></div>
+    </div>
+    <!-- Rotate Prompt -->
+    <div id="rotate-prompt" role="dialog" aria-modal="true" aria-label="Rotate Prompt">
+        <p>Please rotate your screen or swap to a desktop or tablet device.</p>
+    </div>
+    <!-- Header -->
+    <header>
+        <h1>Stats Teacher</h1>
+    </header>
+
+    <!-- Popups -->
+
+    <!-- Initial popup -->
+    <div id="initial-popup" class="initial-Popup" role="dialog" aria-modal="true" aria-labelledby="popup-title">
+        <div class="popup-content">
+            <h2 id="popup-title">Welcome to Stats Teacher!</h2>
+            <p>
+                This application was designed to help teach statistical concepts by simulating the role of a web designer.<br>
+                <br>
+                How to play: <br>
+                The goal is to move the Equation Solver around the screen and try to find the place that nets the highest amount of clicks.<br>
+                <br>
+                You can test a location by pressing "Pilot Run". Once you've decided on a good location, hit "Publish Changes" to see the results for the month.
+            </p>
+            <label>
+                <input type="checkbox" id="dont-show-again-checkbox"> Don't show this again
+            </label>
+            <button id="popup-close-button" aria-label="Close this popup">OK</button>
+        </div>
+    </div>
+
+    <!-- Suggestion Popups-->
+    <div id="scroll-popup" class="popup" aria-live="polite">
+        <p>Scroll down to see the results!</p>
+    </div>
+
+    <div id="move-popup" class="popup" aria-live="polite">
+        <p>Try moving the Equation Solver icon first!</p>
+    </div>
+
+    <div id="testing-popup" class="popup" aria-live="polite">
+        <p>
+            The new location is being tested now.
+            Please wait for the testing indicator to finish
+            and check out the results below!
+        </p>
+    </div>
+    <div id="limit-warning-popup" class="popup" aria-live="polite">
+        <p>
+            You are running out of time!
+            You will have to pick a final location shortly.
+        </p>
+    </div>
+
+    <div id="limit-reached-popup" class="popup" aria-live="polite">
+        <p>
+            You are out of time!
+            Pick a location and press "Publish Changes"
+            to see how your how choice impacted the CTR.
+        </p>
+    </div>
+
+    <div id="outcome-popup" class="popup" aria-live="polite">
+        <!--outcome popup is populated by the resultComparison function-->
+    </div>
+
+    <section id="content-wrapper">
+        <!-- Canvas Interface -->
+        <section id="canvas-interface" class="canvas-interface" aria-label="Statistical Visualization">
+            <canvas id="canvas" aria-label="Interactive statistical visualization"></canvas>
+        </section>
+
+
+        <!-- Testing Status Indicator -->
+        <div id="testing-wrapper" class="testing-wrapper">
+            <h2>Change Metrics</h2>
+            <!-- Clock Container -->
+            <div id="testing-status-clock">
+                <div id="clock-face">
+                    <div id="clock-hand"></div>
+                </div>
+            </div>
+
+            <div id="testing-status-text"></div>
+
+
+            <div id="test-result">
+                <h3 id="comparison-type"></h3>
+                <div id="result-comparison">
+                    <div id="current-summary"></div>
+                    <div id="previous-summary"></div>
+                </div>
+
+            </div>
+
+            <button id="test-button" title="Show sample data for the selected location">Pilot Run</button>
+            <button id="post-button" title="Post changes and display the population data">Publish Changes</button>
+        </div>
+
+        <!-- JavaScript -->
+        <script src="javascript/main.js" type="module"></script>
+
+    </section>
+
+    <!-- Output Interface -->
+    <section id="output-interface" class="output-interface" aria-label="Results and Data">
+        <!-- Outputs on interaction -->
+        <div id="tab-container" class="tab-container" role="tablist">
+            <div class="tabs" id="tabs"></div>
+            <div id="tab-contents"></div>
+        </div>
+    </section>
+</body>
+</html>
