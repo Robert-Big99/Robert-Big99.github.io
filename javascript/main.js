@@ -16,8 +16,6 @@
  * Version 1.1.0 is a major patch containing -
  **/
 
-import quizPopupManager from './QuizPopupManager.js';
-
 (function () {
     'use strict';
     /*** Global Constants and Variables ***/
@@ -86,12 +84,9 @@ import quizPopupManager from './QuizPopupManager.js';
     let locationCounter = 1;      // Counter for the number of locations sampled
 
 
-    const zoneSamples = {};             // Stores sample data for each zone
-    const zonePopulations = {};         // Stores population data for each zone
-    const solverPositions = {};         // Object to store the canvas state for each tab
-    const locationSummaryData = [];     // Stores the data for each position during the player's session
-
-
+    const zoneSamples = {};       // Stores sample data for each zone
+    const zonePopulations = {};   // Stores population data for each zone
+    const solverPositions = {};   // Object to store the canvas state for each tab
 
     // Variables for canvas dimensions and offsets
     let leftOffset, topOffset, canvasDisplayWidth, canvasDisplayHeight;
@@ -386,6 +381,7 @@ import quizPopupManager from './QuizPopupManager.js';
         } else if (type === 'final') {
             message = 'Gathering data for the new location over one month';
         }
+
         // Animate the ellipses
         ellipsesInterval = setInterval(() => {
             ellipses = ellipses.length < 3 ? ellipses + '.' : ''; // Cycle through `.`, `..`, `...`
@@ -395,10 +391,7 @@ import quizPopupManager from './QuizPopupManager.js';
         // Automatically stop the animation after the duration
         setTimeout(() => {
             stopTestingStatus();
-
-            quizPopupManager.moveResultPopup(locationSummaryData);
         }, duration);
-
     }
 
     /*
@@ -439,15 +432,6 @@ import quizPopupManager from './QuizPopupManager.js';
         // Shows the tab container
         const tabContainer = document.getElementById('tab-container');
         tabContainer.style.visibility = 'visible';
-
-        // DEVLOG - Pull round data out and into global scope so it can be more easily referenced in other modules.
-        //( Avoids having to collect it in five different locations.)
-
-
-        // DEBUGGING:
-
-        // Checks to make sure the data structures are being pushed to the sessionData array correctly.
-        // console.log(sessionData);
     }
 
     /*
@@ -584,13 +568,11 @@ import quizPopupManager from './QuizPopupManager.js';
         // Creates the tab element
         const tabId = `tab-${label}`;
         const contentId = `content-${label}`;
-
         const tab = document.createElement('div');
         tab.className = 'tab';
         tab.id = tabId;
-        tab.textContent = `Location ${label}`;
+        tab.textContent = `Pilot ${label}`;
         tab.onclick = () => showTab(tabId, contentId);
-
         tabs.appendChild(tab);
 
         // Creates the content container
@@ -599,23 +581,18 @@ import quizPopupManager from './QuizPopupManager.js';
         content.id = contentId;
 
         // Creates the 'Show Spreadsheet' button
-        // (DISABLED FOR THE TIME BEING AS DISCUSSED)
-        /*
-            const showSpreadsheetButton = document.createElement('button');
-            showSpreadsheetButton.textContent = 'Show Spreadsheet';
-            showSpreadsheetButton.title = 'Toggle the data table';
-            showSpreadsheetButton.onclick = () => toggleSpreadsheet(contentId, showSpreadsheetButton);
+        const showSpreadsheetButton = document.createElement('button');
+        showSpreadsheetButton.textContent = 'Show Spreadsheet';
+        showSpreadsheetButton.title = 'Toggle the data table';
+        showSpreadsheetButton.onclick = () => toggleSpreadsheet(contentId, showSpreadsheetButton);
 
-            // Creates the spreadsheet container
-            const spreadsheetContainer = document.createElement('div');
-            spreadsheetContainer.id = `${contentId}-spreadsheet`;
-            spreadsheetContainer.style.display = 'none';
+        // Creates the spreadsheet container
+        const spreadsheetContainer = document.createElement('div');
+        spreadsheetContainer.id = `${contentId}-spreadsheet`;
+        spreadsheetContainer.style.display = 'none';
 
-            // Appends elements to content
-            DISABLED THE SPREADSHEET
-            content.append(showSpreadsheetButton, spreadsheetContainer);
-        */
-
+        // Appends elements to content
+        content.append(showSpreadsheetButton, spreadsheetContainer);
         tabContents.appendChild(content);
 
         // Save current position of the equation solver for this tab
@@ -681,37 +658,6 @@ import quizPopupManager from './QuizPopupManager.js';
         }
     }
 
-
-
-
-
-    /*
-    * DESCRIPTION:
-    * Creates an array containing the summary data based on the input binary array.
-    *
-    * INPUT:
-    * data - An array of binary data (0s and 1s)
-    *
-    * OUTPUT:
-    * summary - a struct of summary data containing: the size of the population/sample (size),
-    * the number of clicks (clicks), and the click-through rate (CTR) in the aforementioned order.
-    */
-
-    function convertDataToSummary(data){
-        const size = data.length;
-        const clicks = data.reduce((acc, val) => acc + val, 0);
-        const ctr = ((clicks / size) * 100).toFixed(2);
-
-
-        // Returns a struct containing the summary
-        let summary = {
-            size: size,
-            clicks: clicks,
-            ctr: ctr
-        };
-
-        return summary;
-    }
 
     /*
     * DESCRIPTION:
@@ -836,37 +782,24 @@ import quizPopupManager from './QuizPopupManager.js';
     */
     function createInitialSummary(contentId, zoneIndex) {
 
+        const data = zonePopulations[`zone${zoneIndex + 1}`];
+        const totalClicks = data.reduce((acc, val) => acc + val, 0);
+        const populationSize = data.length;
+        const ctr = ((totalClicks / populationSize) * 100).toFixed(2);
 
-        // Original line that offers random population data for the location
-        // const data = zonePopulations[`zone${zoneIndex + 1}`];
-        // let dataSummary = convertDataToSummary(data)
-
-
-        // A Premade data structure with the desired starting values
-        let dataSummary = {
-            size: 22485,
-            clicks: 13649,
-            ctr: 60.7
-        }
-
-
-        locationSummaryData.push(dataSummary);
+        ctrComparison = ctrComparison.concat(ctr);
 
         // Creates the population summary element
         const summary = document.createElement('div');
-        // DEVLOG - IF we still want to go with a predetermined start point, we need to inject a premade binary array in
-        // rather than hardcoding the text...
-
         summary.className = 'summary population';
         summary.innerHTML =
-            summary.innerHTML =
-                `
-                    <p>
-                        <span class="line">Visitors: ${dataSummary.size}</span><br>
-                        <span class="line">Clicks: ${dataSummary.clicks}</span><br>
-                        <span class="line">CTR: ${dataSummary.ctr}%</span><br>
-                    </p>
-                `
+            `
+                <p>
+                    <span class= "line">Visitors: 22486 </span><br>
+                    <span class= "line">Clicks: 13649 </span><br>
+                    <span class= "line">CTR: 60.7% </span><br>
+                </p>
+            `;
         document.getElementById(contentId).appendChild(summary);
         /**
          // ######################################################################################################################
@@ -884,7 +817,7 @@ import quizPopupManager from './QuizPopupManager.js';
          // ######################################################################################################################## */
 
         // Creates the data table for the zone
-        // createDataTable(contentId, zoneIndex);
+        createDataTable(contentId, zoneIndex);
 
         // Captures the canvas layout in text format at the time of the button press
         canvasRepresentations[contentId] = generateTextCanvasRepresentation();
@@ -939,11 +872,13 @@ import quizPopupManager from './QuizPopupManager.js';
     function createSampleSummary(ContentId) {
         // Fetch the selected zone's samples and pull a random sample
         const { samples: selectedZoneSamples } = selectZoneByDistance();
-        const data = pullSample(selectedZoneSamples);
+        const randomSample = pullSample(selectedZoneSamples);
+        if (!randomSample) return;
 
-        let dataSummary = convertDataToSummary(data);
-        locationSummaryData.push(dataSummary);
-
+        // Sample data calculations
+        const sampleClicks = randomSample.reduce((acc, val) => acc + val, 0);
+        const samplePopulation = randomSample.length;
+        const sampleCTR = ((sampleClicks / samplePopulation) * 100).toFixed(2);
 
         // Updates the sample counter
         sampleCounter++;
@@ -954,9 +889,9 @@ import quizPopupManager from './QuizPopupManager.js';
         summary.innerHTML =
             `
                 <p>
-                    <span class="line">Visitors: ${dataSummary.size}</span><br>
-                    <span class="line">Clicks: ${dataSummary.clicks}</span><br>
-                    <span class="line">CTR: ${dataSummary.ctr}%</span><br>
+                    <span class="line">Visitors: ${samplePopulation}</span><br>
+                    <span class="line">Clicks: ${sampleClicks}</span><br>
+                    <span class="line">CTR: ${sampleCTR}%</span><br>
                 </p>
             `;
 
@@ -968,10 +903,10 @@ import quizPopupManager from './QuizPopupManager.js';
         lockCanvas(8000);                       // Locks the canvas
         startTestingStatus(8000, "sample");     // Triggers the glow effect
         updateClockSpeed(2, 8000);              // Initiates clock spin
-        triggerGlowEffect(8000, dataSummary.clicks);  // Displays the testing status
+        triggerGlowEffect(8000, sampleClicks);  // Displays the testing status
 
         // Creates the data table for the sample
-        // createSampleTable(ContentId, sampleCounter, data);
+        createSampleTable(ContentId, sampleCounter, randomSample);
 
         // Capture the canvas layout in text format at the time of the button press
         canvasRepresentations[ContentId] = generateTextCanvasRepresentation();
@@ -1003,6 +938,7 @@ import quizPopupManager from './QuizPopupManager.js';
                 `;
         spreadsheet.appendChild(table);
     }
+
     /*
     * DESCRIPTION:
     * Creates a summary of the population data for the selected zone and adds it to the content.
@@ -1016,12 +952,11 @@ import quizPopupManager from './QuizPopupManager.js';
     */
     function createPopulationSummary(contentId, zoneIndex) {
         const data = zonePopulations[`zone${zoneIndex + 1}`];
+        const totalPopulation = data.length;
+        const totalClicks = data.reduce((acc, val) => acc + val, 0);
+        const totalCTR = ((totalClicks / totalPopulation) * 100).toFixed(2);
 
-        let dataSummary = convertDataToSummary(data)
-        locationSummaryData.push(dataSummary);
-
-
-        ctrComparison = ctrComparison.concat(dataSummary.ctr);
+        ctrComparison = ctrComparison.concat(totalCTR);
         console.log(ctrComparison);
         // Creates the population summary element
         const summary = document.createElement('div');
@@ -1030,9 +965,9 @@ import quizPopupManager from './QuizPopupManager.js';
             `
                 <p>
                     <!--<span class="line">[Day ${sampleCounter}]</span><br>-->
-                    <span class="line">Visitors: ${dataSummary.size}</span><br>
-                    <span class="line">Clicks: ${dataSummary.clicks}</span><br>
-                    <span class="line">CTR: ${dataSummary.ctr}%</span><br>
+                    <span class="line">Visitors: ${totalPopulation}</span><br>
+                    <span class="line">Clicks: ${totalClicks}</span><br>
+                    <span class="line">CTR: ${totalCTR}%</span><br>
                 </p>
             `
 
@@ -1043,7 +978,7 @@ import quizPopupManager from './QuizPopupManager.js';
         lockCanvas(0);                           // Locks the canvas
         startTestingStatus(15000, "final");      // Triggers the glow effect
         updateClockSpeed(60, 15000);             // Initiates clock spin
-        triggerGlowEffect(15000, dataSummary.clicks);   // Displays the testing status
+        triggerGlowEffect(15000, totalClicks);   // Displays the testing status
 
         resultComparison(summary);
 
@@ -1052,8 +987,6 @@ import quizPopupManager from './QuizPopupManager.js';
 
         // Captures the canvas layout in text format at the time of the button press
         canvasRepresentations[contentId] = generateTextCanvasRepresentation();
-
-
     }
 
 
@@ -1306,21 +1239,25 @@ import quizPopupManager from './QuizPopupManager.js';
     function pilotLimiter(limit) {
         // If the pilot run count equals the limit, switch to final test mode.
         if (pilotRuns === (limit - 1)) {
-            finalTest = true;
-            lockCanvas(0);  // Locks the canvas indefinitely
+
             // Displays the limit popup
-            // warningPopup.classList.add('show');
-            /*
+            warningPopup.classList.add('show');
             setTimeout(() => {
                 warningPopup.classList.remove('show');
             }, 5000);
-            */
-            }
-
+        }
         if (pilotRuns >= limit) {
             finalTest = true;
-            lockCanvas(0, true); // Lock canvas but keep post button enabled
+            lockCanvas(0);  // Locks the canvas indefinitely
 
+            // Displays the limit popup
+            limitPopup.classList.add('show');
+            setTimeout(() => {
+                limitPopup.classList.remove('show');
+            }, 5000);
+
+
+            // Swap the test button out for the Publish Changes button.
             testButton.style.display = 'none';
             postButton.style.display = 'block';
         }
@@ -1338,21 +1275,30 @@ import quizPopupManager from './QuizPopupManager.js';
     * OUTPUT:
     * Sets canvasLocked to true and optionally unlocks it after the specified time.
     */
-    function lockCanvas(duration, keepPostEnabled = false) {
+    function lockCanvas(duration) {
+        // Locks the canvas
         canvasLocked = true;
         isDragging = false;
 
-        document.getElementById('post-button').disabled = !keepPostEnabled;
+
+        // Disables buttons during the lock period
+        document.getElementById('post-button').disabled = true;
         document.getElementById('test-button').disabled = true;
 
-        if ((duration > 0) && !finalTest) {
+        // If a time parameter is provided and this is not the final test, set a timeout to unlock the canvas
+        if ((duration > 0) && (finalTest === false)) {
             setTimeout(() => {
+                stopTestingStatus(); // Removes the testing status text if running.
                 canvasLocked = false;
+
+                // Re-enables the 'Post Changes' and 'Show Sample' buttons
                 document.getElementById('post-button').disabled = false;
                 document.getElementById('test-button').disabled = false;
             }, duration);
+
         }
     }
+
 
 
     /*
@@ -1451,7 +1397,7 @@ import quizPopupManager from './QuizPopupManager.js';
 
             // Increments the pilotRuns count and checks if the pilot run limit has been reached.
             pilotRuns++;
-            pilotLimiter(3);
+            pilotLimiter(5);
 
             // Show testingPopup briefly.
             if (pilotRuns === 1) {
