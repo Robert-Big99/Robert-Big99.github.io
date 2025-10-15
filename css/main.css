@@ -1,39 +1,35 @@
-/**
- * FILE: main.js
- * VERSION: 1.0.1
- * DATE: 12/05/2024
- * AUTHOR: REDACTED
- *
- * DESCRIPTION:
- * This application is a complete redesign of WebDesignProject.xlsm for the Client Andrei Perkhounkov. It will function
- * in any modern web browser, and most modern devices, both mobile and desktop. The application will be used to help
- * teach statistics to students using web design as a driver of the education. It will accomplish this by simulating
- * improvements or reductions in click-through rates on a moveable element in correlation with the distance from
- * hidden element(s). It will then print the changes in the sample size out onto the webpage. Allowing the student
- * to review and infer if the changes made are effective.
- *
- * VERSION NOTES:
- * Version 1.0.1 is a hot patch containing several new QoL features as per the request of the client. Such as a loading
- * icon for when the page loads, a first time popup to give the user info on the program, a popup to tell the user
- * scroll down to the sample results, animations for sample and population events, and a testing status box containing
- * a clock.
- *
- * CSS modifications: Please see .loader, .starting-popup, and #scroll-popup for changes, and  along with new
- * properties for #testing-status check the and check the JavaScript for their respective Event listeners.
- *
- * DEVELOPER NOTE:
- * Much of this may needs to be refactored in a later iteration. As many changes were patched in last minute to meet
- * client demands. Please report any poorly implemented code for reassessment.
- **/
 
         * { box-sizing: border-box; }
         html{
             font-size: calc(0.5vw + 0.5em);
         }
+        header {
+        min-height: 50px;
+        }
+html, body {
+    height: 100%;
+}
         body {
+            display: flex;
+            flex-direction: column;
+            
+            min-height: 100vh;
+            margin: 0;
+
             font-family: Arial, sans-serif;
             background-color: #333;
             color: #fff;
+        }
+        /* Ensure main content fills remaining vertical space */
+        main {
+            flex: 1;
+        }
+
+        footer {
+            background-color: #444;
+            text-align: right;
+            padding: 10px 5px;
+            border-top: 3px solid grey;
         }
 
         span.line {
@@ -159,6 +155,7 @@
 
         /* Testing Popup */
         .testing-wrapper {
+            width: 100%;
             background-color: #444;
             color: #fff;
             border-radius: 15px;
@@ -167,8 +164,8 @@
         }
             /* Children of testing-wrapper */
             #testing-status-text {
+                min-width: 0;
                 padding: 0 10px;
-                text-align: start;
                 font-family: monospace;
             }
 
@@ -180,8 +177,10 @@
 
             /* Clock Animation */
             #testing-status-clock {
+                width: 100%;
                 visibility: hidden;
                 display: flex;
+                text-align: left;
                 justify-content: center;
                 align-items: center;
             }
@@ -455,10 +454,11 @@
 
                 #testing-status-text {
                     margin: auto 0;
-                    text-align: center;
+                    text-align: left;
 
                     grid-column: 1/6;
                     grid-row: 4/5;
+                    font-size: clamp(0.5rem, 5vw, 1rem);
                 }
                 #test-result{
                     grid-column: 1/6;
