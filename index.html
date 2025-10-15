@@ -1,25 +1,5 @@
 
 <!DOCTYPE html>
-<!--
- * FILE: main.js
- * VERSION: 1.0.1
- * DATE: 12/05/2024
- * AUTHOR: Robert Biggart
- *
- * DESCRIPTION:
- * This application is a complete redesign of WebDesignProject.xlsm for the Client Andrei Perkhounkov. It will function
- * in any modern web browser, and most modern devices, both mobile and desktop. The application will be used to help
- * teach statistics to students using web design as a driver of the education. It will accomplish this by simulating
- * improvements or reductions in click-through rates on a moveable element in correlation with the distance from
- * hidden element(s). It will then print the changes in the sample size out onto the webpage. Allowing the student
- * to review and infer if the changes made are effective.
- *
- * VERSION NOTES:
- * Version 1.0.1 is a hot patch containing several new QoL features as per the request of the client. Such as a loading
- * icon for when the page loads, a first time popup to give the user info on the program, a popup to tell the user
- * scroll down to the sample results, animations for sample and population events, and a testing status box containing
- * a clock.
--->
 <html lang="en">
 <head>
     <!-- Page metadata -->
@@ -103,7 +83,7 @@
     <div id="outcome-popup" class="popup" aria-live="polite">
         <!--outcome popup is populated by the resultComparison function-->
     </div>
-
+    <main>
     <section id="content-wrapper">
         <!-- Canvas Interface -->
         <section id="canvas-interface" class="canvas-interface" aria-label="Statistical Visualization">
@@ -148,6 +128,8 @@
             <div class="tabs" id="tabs"></div>
             <div id="tab-contents"></div>
         </div>
+    </main>
     </section>
+    <footer>&copy;Stats Teacher 2025</footer>
 </body>
 </html>
